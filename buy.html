@@ -141,17 +141,17 @@
             <!-- PayPal Button Container -->
             <div id="paypal-button-container" class="mt-6"></div>
           </form>
-        </div>
 
-        <!-- Success Message (shown after purchase) -->
-        <div id="successMessage" class="hidden rounded-2xl border-2 border-green-300 bg-green-50 p-8 text-center">
-          <div class="text-4xl mb-4">✓</div>
-          <h3 class="text-2xl font-semibold text-green-900 mb-2">Purchase Complete!</h3>
-          <p class="text-green-700 mb-4">Your license key has been sent to your email.</p>
-          <p class="text-sm text-green-600 mb-6">Check your inbox for the license key and receipt.</p>
-          <a href="./index.html" class="inline-block rounded-xl bg-[#1a1a4d] text-white px-6 py-3 font-semibold transition hover:shadow-lg">
-            Back to Home
-          </a>
+          <!-- Success Message (shown after purchase) -->
+          <div id="successMessage" class="hidden rounded-2xl border-2 border-green-300 bg-green-50 p-8 text-center">
+            <div class="text-4xl mb-4">✓</div>
+            <h3 class="text-2xl font-semibold text-green-900 mb-2">Purchase Complete!</h3>
+            <p class="text-green-700 mb-4">Your license key has been sent to your email.</p>
+            <p class="text-sm text-green-600 mb-6">Check your inbox for the license key and receipt.</p>
+            <a href="./index.html" class="inline-block rounded-xl bg-[#1a1a4d] text-white px-6 py-3 font-semibold transition hover:shadow-lg">
+              Back to Home
+            </a>
+          </div>
         </div>
 
         <!-- FAQ -->
@@ -293,9 +293,11 @@
     }).render('#paypal-button-container');
 
     async function sendLicenseEmail(userEmail, licenseKey) {
-      // Call backend function to send email (keeps API key secure)
+      // Call backend function (will be on Railway)
+      const BACKEND_URL = 'https://your-railway-url.railway.app'; // Update with your Railway URL
+      
       try {
-        const response = await fetch('/api/send-license-email', {
+        const response = await fetch(`${BACKEND_URL}/api/send-license-email`, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json'
