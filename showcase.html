@@ -195,8 +195,54 @@
       
       console.log('Supabase client initialized');
       
+      // Try to get logged-in user info
+      await checkLoggedInUser();
+      
       await loadDesigns();
     });
+
+    let currentUser = null;
+
+    async function checkLoggedInUser() {
+      try {
+        // Get username and license key from localStorage
+        const username = localStorage.getItem('pixelcat_username');
+        const licenseKey = localStorage.getItem('pixelcat_license_key');
+        
+        if (!username || !licenseKey) {
+          console.log('User not logged in');
+          return;
+        }
+
+        console.log('Fetching profile for user:', username);
+
+        // Fetch user profile from Supabase
+        const { data: profile, error } = await supabaseClient
+          .from('user_profiles')
+          .select('username, avatar_url, email')
+          .eq('username', username)
+          .single();
+
+        if (profile && !error) {
+          currentUser = {
+            username: profile.username,
+            avatar_url: profile.avatar_url,
+            email: profile.email
+          };
+          console.log('User profile loaded:', currentUser);
+        } else {
+          // Fallback if profile not found
+          currentUser = {
+            username: username,
+            avatar_url: null,
+            email: null
+          };
+          console.log('Using fallback user data');
+        }
+      } catch (error) {
+        console.error('Error fetching user profile:', error);
+      }
+    }
 
     // Setup drag and drop for image
     const imageDropZone = document.getElementById('imageDropZone');
@@ -300,13 +346,18 @@
         return;
       }
 
-      // Ask for username
-      let creatorName = prompt('Enter your username:');
-      if (!creatorName || creatorName.trim() === '') {
-        alert('Please enter a username');
-        return;
+      // Use current user if logged in, otherwise prompt for username
+      let creatorName = currentUser ? currentUser.username : null;
+      let creatorAvatar = currentUser ? currentUser.avatar_url : null;
+
+      if (!creatorName) {
+        creatorName = prompt('Enter your username:');
+        if (!creatorName || creatorName.trim() === '') {
+          alert('Please enter a username');
+          return;
+        }
+        creatorName = creatorName.trim();
       }
-      creatorName = creatorName.trim();
 
       try {
         // Read image as base64
@@ -324,6 +375,7 @@
           json_data: jsonData,
           json_filename: jsonFile.name,
           creator_name: creatorName,
+          creator_avatar: creatorAvatar,
           created_at: new Date().toISOString()
         };
 
@@ -409,7 +461,10 @@
           </div>
           <div class="p-6">
             <h3 class="text-lg font-semibold text-[#1a1a4d] mb-1">${design.name}</h3>
-            <p class="text-xs text-[#9ca3af] mb-3">by ${design.creator_name}</p>
+            <div class="flex items-center gap-2 mb-3">
+              ${design.creator_avatar ? `<img src="${design.creator_avatar}" alt="${design.creator_name}" class="w-6 h-6 rounded-full object-cover" />` : `<div class="w-6 h-6 rounded-full bg-[#d4c8ff]"></div>`}
+              <p class="text-xs text-[#9ca3af]">by ${design.creator_name}</p>
+            </div>
             <p class="text-sm text-[#6b5ba0] mb-4">${design.description}</p>
             <button onclick="downloadDesign(${design.id}, '${design.json_filename}')" class="w-full rounded-lg bg-[#8b9eff] px-4 py-2 text-sm font-semibold text-white transition hover:bg-[#7a8ce0]">
               Download JSON
