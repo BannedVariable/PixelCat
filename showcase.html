@@ -182,20 +182,18 @@
 
   <script>
     // Initialize Supabase
-    const SUPABASE_URL = 'https://your-supabase-url.supabase.co';
-    const SUPABASE_KEY = 'your-supabase-anon-key';
+    const SUPABASE_URL = 'https://aruivlzkiqknqldefegp.supabase.co';
+    const SUPABASE_KEY = 'sb_publishable_U9rHF4DDovZLn0RY3azpwg_W56itNco';
     
     let supabaseClient;
     let designs = [];
 
     // Initialize Supabase when page loads
     window.addEventListener('load', async () => {
-      // Get Supabase config from index.html or initialize here
-      if (window.supabaseClient) {
-        supabaseClient = window.supabaseClient;
-      } else {
-        supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
-      }
+      // Create Supabase client
+      supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+      
+      console.log('Supabase client initialized');
       
       await loadDesigns();
     });
@@ -209,13 +207,16 @@
     imageDropZone.addEventListener('dragover', (e) => {
       e.preventDefault();
       imageDropZone.classList.add('border-[#8b9eff]', 'bg-[#f0e8ff]');
+      imageDropZone.querySelector('div').style.display = 'none';
     });
     imageDropZone.addEventListener('dragleave', () => {
       imageDropZone.classList.remove('border-[#8b9eff]', 'bg-[#f0e8ff]');
+      imageDropZone.querySelector('div').style.display = 'block';
     });
     imageDropZone.addEventListener('drop', (e) => {
       e.preventDefault();
       imageDropZone.classList.remove('border-[#8b9eff]', 'bg-[#f0e8ff]');
+      imageDropZone.querySelector('div').style.display = 'block';
       const files = e.dataTransfer.files;
       if (files.length > 0) {
         designImage.files = files;
@@ -246,13 +247,16 @@
     jsonDropZone.addEventListener('dragover', (e) => {
       e.preventDefault();
       jsonDropZone.classList.add('border-[#8b9eff]', 'bg-[#f0e8ff]');
+      jsonDropZone.querySelector('div').style.display = 'none';
     });
     jsonDropZone.addEventListener('dragleave', () => {
       jsonDropZone.classList.remove('border-[#8b9eff]', 'bg-[#f0e8ff]');
+      jsonDropZone.querySelector('div').style.display = 'block';
     });
     jsonDropZone.addEventListener('drop', (e) => {
       e.preventDefault();
       jsonDropZone.classList.remove('border-[#8b9eff]', 'bg-[#f0e8ff]');
+      jsonDropZone.querySelector('div').style.display = 'block';
       const files = e.dataTransfer.files;
       if (files.length > 0) {
         designJSON.files = files;
@@ -296,6 +300,14 @@
         return;
       }
 
+      // Ask for username
+      let creatorName = prompt('Enter your username:');
+      if (!creatorName || creatorName.trim() === '') {
+        alert('Please enter a username');
+        return;
+      }
+      creatorName = creatorName.trim();
+
       try {
         // Read image as base64
         const imageBase64 = await fileToBase64(imageFile);
@@ -304,9 +316,6 @@
         const jsonContent = await fileToText(jsonFile);
         const jsonData = JSON.parse(jsonContent);
 
-        // Get current user (if logged in)
-        const currentUser = localStorage.getItem('pixelcat_username') || 'Anonymous';
-
         // Create design object
         const designData = {
           name,
@@ -314,20 +323,25 @@
           image: imageBase64,
           json_data: jsonData,
           json_filename: jsonFile.name,
-          creator_name: currentUser,
+          creator_name: creatorName,
           created_at: new Date().toISOString()
         };
+
+        console.log('Submitting design:', designData);
 
         // Insert into Supabase
         const { data, error } = await supabaseClient
           .from('community_designs')
-          .insert([designData]);
+          .insert([designData])
+          .select();
 
         if (error) {
           console.error('Error adding design:', error);
-          alert('Error adding design. Please try again.');
+          alert(`Error adding design: ${error.message || 'Please try again.'}`);
           return;
         }
+
+        console.log('Design added successfully:', data);
 
         // Reset form and close modal
         closeAddDesignModal();
@@ -336,7 +350,7 @@
         alert('Design added successfully!');
       } catch (error) {
         console.error('Error adding design:', error);
-        alert('Error adding design. Please check your JSON file.');
+        alert(`Error adding design: ${error.message || 'Please check your JSON file.'}`);
       }
     }
 
@@ -390,14 +404,14 @@
       emptyState.classList.add('hidden');
       grid.innerHTML = designs.map(design => `
         <div class="rounded-2xl border border-[#d4c8ff] bg-[#fffbff] overflow-hidden hover:shadow-lg transition">
-          <div class="w-full h-48 bg-[#f5f3ff] overflow-hidden">
-            <img src="${design.image}" alt="${design.name}" class="w-full h-full object-cover" />
+          <div class="w-full h-48 bg-[#f5f3ff] overflow-hidden flex items-center justify-center">
+            <img src="${design.image}" alt="${design.name}" class="w-full h-full object-contain" />
           </div>
           <div class="p-6">
             <h3 class="text-lg font-semibold text-[#1a1a4d] mb-1">${design.name}</h3>
             <p class="text-xs text-[#9ca3af] mb-3">by ${design.creator_name}</p>
             <p class="text-sm text-[#6b5ba0] mb-4">${design.description}</p>
-            <button onclick="downloadDesign(${design.id})" class="w-full rounded-lg bg-[#8b9eff] px-4 py-2 text-sm font-semibold text-white transition hover:bg-[#7a8ce0]">
+            <button onclick="downloadDesign(${design.id}, '${design.json_filename}')" class="w-full rounded-lg bg-[#8b9eff] px-4 py-2 text-sm font-semibold text-white transition hover:bg-[#7a8ce0]">
               Download JSON
             </button>
           </div>
@@ -405,14 +419,14 @@
       `).join('');
     }
 
-    function downloadDesign(id) {
+    function downloadDesign(id, filename) {
       const design = designs.find(d => d.id === id);
       if (!design) return;
 
       // Create and download JSON
       const element = document.createElement('a');
-      element.setAttribute('href', 'data:text/plain;charset=utf-8,' + encodeURIComponent(JSON.stringify(design.json_data, null, 2)));
-      element.setAttribute('download', design.json_filename || `${design.name}.json`);
+      element.setAttribute('href', 'data:application/json;charset=utf-8,' + encodeURIComponent(JSON.stringify(design.json_data, null, 2)));
+      element.setAttribute('download', filename || `design-${id}.json`);
       element.style.display = 'none';
       document.body.appendChild(element);
       element.click();
