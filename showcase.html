@@ -454,7 +454,15 @@
       }
 
       emptyState.classList.add('hidden');
-      grid.innerHTML = designs.map(design => `
+      grid.innerHTML = designs.map(design => {
+        const avatarHtml = design.creator_avatar 
+          ? `<img src="${design.creator_avatar}" alt="${design.creator_name}" class="w-6 h-6 rounded-full object-cover border border-[#d4c8ff]" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex'" />`
+          : '';
+        const placeholderHtml = !design.creator_avatar 
+          ? `<div class="w-6 h-6 rounded-full bg-[#8b9eff] flex items-center justify-center text-white text-xs font-bold">${design.creator_name.charAt(0).toUpperCase()}</div>`
+          : `<div class="w-6 h-6 rounded-full bg-[#8b9eff] hidden items-center justify-center text-white text-xs font-bold">${design.creator_name.charAt(0).toUpperCase()}</div>`;
+        
+        return `
         <div class="rounded-2xl border border-[#d4c8ff] bg-[#fffbff] overflow-hidden hover:shadow-lg transition">
           <div class="w-full h-48 bg-[#f5f3ff] overflow-hidden flex items-center justify-center">
             <img src="${design.image}" alt="${design.name}" class="w-full h-full object-contain" />
@@ -462,7 +470,8 @@
           <div class="p-6">
             <h3 class="text-lg font-semibold text-[#1a1a4d] mb-1">${design.name}</h3>
             <div class="flex items-center gap-2 mb-3">
-              ${design.creator_avatar ? `<img src="${design.creator_avatar}" alt="${design.creator_name}" class="w-6 h-6 rounded-full object-cover" />` : `<div class="w-6 h-6 rounded-full bg-[#d4c8ff]"></div>`}
+              ${avatarHtml}
+              ${placeholderHtml}
               <p class="text-xs text-[#9ca3af]">by ${design.creator_name}</p>
             </div>
             <p class="text-sm text-[#6b5ba0] mb-4">${design.description}</p>
@@ -471,7 +480,8 @@
             </button>
           </div>
         </div>
-      `).join('');
+      `;
+      }).join('');
     }
 
     function downloadDesign(id, filename) {
