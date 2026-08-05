@@ -12,7 +12,6 @@
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://code.iconify.design/iconify-icon/2.1.0/iconify-icon.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <script src="https://www.paypal.com/sdk/js?client-id=Ab-XpkC11m71zNw5CRjOkuQdLqkGGHn5cyGl8hV4nBb09ulChGTw1kpjXk_jU6SgjjmfRDrDoQja_y-h&currency=USD"></script>
   <style>
     body {
       font-family: 'Manrope', sans-serif;
@@ -107,7 +106,7 @@
           </div>
 
           <!-- Purchase Form -->
-          <form id="purchaseForm" class="space-y-4">
+          <div class="space-y-4">
             <!-- Email -->
             <div>
               <label for="email" class="block text-sm font-semibold text-[#1a1a4d] mb-2">Email</label>
@@ -138,9 +137,14 @@
             <!-- Status Messages -->
             <div id="statusMessage" class="hidden rounded-lg p-4 text-sm"></div>
 
-            <!-- PayPal Button Container -->
-            <div id="paypal-button-container" class="mt-6"></div>
-          </form>
+            <!-- Pay Button -->
+            <button onclick="handlePayment()" class="w-full rounded-xl bg-[#1a1a4d] px-6 py-4 text-sm font-semibold text-white shadow-[4px_4px_0_#d4c8ff] transition hover:-translate-y-1 hover:shadow-[5px_6px_0_#d4c8ff] mt-6 flex items-center justify-center gap-2">
+              <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="currentColor" viewBox="0 0 16 16">
+                <path d="M14.06 3.713c.12-1.071-.093-1.832-.702-2.526C12.628.356 11.312 0 9.626 0H4.734a.7.7 0 0 0-.691.59L2.005 13.509a.42.42 0 0 0 .415.486h2.756l-.202 1.28a.628.628 0 0 0 .62.726H8.14c.429 0 .793-.31.862-.731l.025-.13.48-3.043.03-.164.001-.007a.35.35 0 0 1 .348-.297h.38c1.266 0 2.425-.256 3.345-.91q.57-.403.993-1.005a4.94 4.94 0 0 0 .88-2.195c.242-1.246.13-2.356-.57-3.154a2.7 2.7 0 0 0-.76-.59l-.094-.061ZM6.543 8.82a.7.7 0 0 1 .321-.079H8.3c2.82 0 5.027-1.144 5.672-4.456l.003-.016q.326.186.548.438c.546.623.679 1.535.45 2.71-.272 1.397-.866 2.307-1.663 2.874-.802.57-1.842.815-3.043.815h-.38a.87.87 0 0 0-.863.734l-.03.164-.48 3.043-.024.13-.001.004a.35.35 0 0 1-.348.296H5.595a.106.106 0 0 1-.105-.123l.208-1.32z"/>
+              </svg>
+              Pay with PayPal
+            </button>
+          </div>
 
           <!-- Success Message (shown after purchase) -->
           <div id="successMessage" class="hidden rounded-2xl border-2 border-green-300 bg-green-50 p-8 text-center">
@@ -209,116 +213,58 @@
       return key;
     }
 
-    // Handle Purchase
-    document.getElementById('purchaseForm').addEventListener('submit', async (e) => {
-      e.preventDefault();
-
+    // Handle Payment via PayPal.me
+    async function handlePayment() {
       const email = document.getElementById('email').value.trim();
       const termsAccepted = document.getElementById('terms').checked;
 
       if (!email || !termsAccepted) {
-        showStatus('Please fill in all fields', 'error');
+        showStatus('Please enter your email and accept the terms', 'error');
         return;
       }
 
-      // Email is valid, show PayPal button
-      document.getElementById('email').disabled = true;
-      document.getElementById('terms').disabled = true;
-      document.querySelector('label[for="email"]').style.opacity = '0.6';
-    });
-
-    // Initialize PayPal
-    paypal.Buttons({
-      createOrder: (data, actions) => {
-        const email = document.getElementById('email').value.trim();
-        if (!email) {
-          showStatus('Please enter your email', 'error');
-          return;
-        }
-
-        return actions.order.create({
-          purchase_units: [{
-            amount: {
-              value: '2.99',
-              currency_code: 'USD'
-            },
-            description: 'PixelCat Lifetime License'
-          }]
-        });
-      },
-      onApprove: async (data, actions) => {
-        return actions.order.capture().then(async (orderData) => {
-          const email = document.getElementById('email').value.trim();
-          
-          try {
-            // Generate license key
-            const licenseKey = generateLicenseKey();
-
-            // Save purchase to Supabase
-            const { error } = await supabase
-              .from('purchases')
-              .insert({
-                email: email,
-                amount_paid: 2.99,
-                currency: 'USD',
-                payment_method: 'paypal',
-                status: 'completed',
-                license_key: licenseKey,
-                notes: `PayPal Order ID: ${orderData.id}`
-              })
-              .select();
-
-            if (error) {
-              throw new Error(error.message);
-            }
-
-            // Send email with license key and receipt
-            await sendLicenseEmail(email, licenseKey);
-
-            // Show success message
-            document.getElementById('purchaseForm').style.display = 'none';
-            document.getElementById('successMessage').classList.remove('hidden');
-            
-            showStatus(`License key sent to ${email}!`, 'success');
-
-          } catch (error) {
-            showStatus(`Error: ${error.message}`, 'error');
-          }
-        });
-      },
-      onError: (err) => {
-        console.error('PayPal error:', err);
-        showStatus('Payment failed. Please try again.', 'error');
+      // Validate email format
+      if (!email.includes('@')) {
+        showStatus('Please enter a valid email address', 'error');
+        return;
       }
-    }).render('#paypal-button-container');
 
-    async function sendLicenseEmail(userEmail, licenseKey) {
-      // Call backend function (will be on Railway)
-      const BACKEND_URL = 'https://your-railway-url.railway.app'; // Update with your Railway URL
-      
       try {
-        const response = await fetch(`${BACKEND_URL}/api/send-license-email`, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json'
-          },
-          body: JSON.stringify({
-            email: userEmail,
-            licenseKey: licenseKey
-          })
-        });
+        // Generate license key
+        const licenseKey = generateLicenseKey();
 
-        if (!response.ok) {
-          const errorData = await response.json();
-          throw new Error('Failed to send email: ' + (errorData.message || response.statusText));
+        // Save pending purchase to Supabase
+        const { error } = await supabase
+          .from('purchases')
+          .insert({
+            email: email,
+            amount_paid: 2.99,
+            currency: 'USD',
+            payment_method: 'paypal',
+            status: 'pending',
+            license_key: licenseKey,
+            notes: 'Payment pending via PayPal.me'
+          })
+          .select();
+
+        if (error) {
+          throw new Error(error.message);
         }
 
-        return response.json();
+        // Redirect to PayPal.me with email in note
+        const paypalUrl = `https://www.paypal.me/GoodnNixen/2.99?note=PixelCat%20License%20-%20${encodeURIComponent(email)}`;
+        window.location.href = paypalUrl;
+
       } catch (error) {
-        console.error('Email send error:', error);
-        throw error;
+        showStatus(`Error: ${error.message}`, 'error');
       }
     }
+
+    // Hide loading message on page load
+    document.addEventListener('DOMContentLoaded', function() {
+      const loadingMsg = document.getElementById('loadingMessage');
+      if (loadingMsg) loadingMsg.style.display = 'none';
+    });
 
     function showStatus(message, type) {
       const statusMsg = document.getElementById('statusMessage');
