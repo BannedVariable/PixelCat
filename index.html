@@ -120,7 +120,7 @@
         </h1>
 
         <p class="mx-auto mt-8 max-w-2xl text-base leading-7 text-[#6b5ba0] sm:text-lg sm:leading-8">
-          PixelCat reacts to your mouse, keyboard, and scrolls. Reminds you to stretch, includes a Pomodoro timer. Customize its color and pattern to make it feel like your own cat.
+          PixelCat reacts to your mouse, keyboard, and scrolls. Reminds you to stretch, includes a Pomodoro timer. Customize its color and pattern to make it feel like your own cat. Available for Windows.
         </p>
 
         <div class="mt-10 flex flex-col items-center justify-center gap-4 sm:flex-row">
@@ -366,7 +366,7 @@
               </div>
               <div class="flex items-start gap-3">
                 <span class="mt-1 text-lg">✓</span>
-                <span class="text-sm text-[#6b5ba0]">PixelCat for macOS and Windows • No telemetry</span>
+                <span class="text-sm text-[#6b5ba0]">PixelCat for Windows • No telemetry</span>
               </div>
               <div class="flex items-start gap-3">
                 <span class="mt-1 text-lg">✓</span>
@@ -388,7 +388,7 @@
                   <div class="flex items-baseline justify-between">
                     <span class="text-sm font-semibold text-[#1a1a4d]">PixelCat License</span>
                     <div class="flex items-baseline gap-1">
-                      <span class="text-4xl font-bold text-[#1a1a4d]">$3</span>
+                      <span class="text-4xl font-bold text-[#1a1a4d]">$2</span>
                       <span class="text-xl text-[#6b5ba0]">.99</span>
                     </div>
                   </div>
@@ -1307,7 +1307,7 @@
         allFeatures: 'All features included',
         custom: 'Custom cat color & pattern mapping',
         stretch: 'Stretch reminders and Pomodoro updates',
-        platforms: 'PixelCat for macOS and Windows • No telemetry',
+        platforms: 'PixelCat for Windows • No telemetry',
         license: 'One license works across your devices',
         alreadyPurchased: 'Already purchased?',
         downloadPixelcat: 'Download PixelCat',
@@ -1575,6 +1575,11 @@
     window.addEventListener('load', () => {
       updatePageLanguage(currentLanguage);
     });
+
+    // Buy button function
+    function buyNow() {
+      window.location.href = './buy.html';
+    }
   </script>
 
   <!-- Language Selector Modal -->
