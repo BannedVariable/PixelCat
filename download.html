@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Download PixelCat — A cat that lives in your computer</title>
+  <meta name="description" content="Download PixelCat for macOS and Windows. Free trial available.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Manrope:wght@400;500;600&family=Pixelify+Sans:wght@500;600&display=swap" rel="stylesheet">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://code.iconify.design/iconify-icon/2.1.0/iconify-icon.min.js"></script>
+  <style>
+    body {
+      font-family: 'Manrope', sans-serif;
+    }
+    h1, h2, h3 {
+      font-family: 'Pixelify Sans', sans-serif;
+    }
+
+    ::-webkit-scrollbar {
+      width: 10px;
+    }
+
+    ::-webkit-scrollbar-track {
+      background: transparent;
+    }
+
+    ::-webkit-scrollbar-thumb {
+      background: #d4c8ff;
+      border-radius: 5px;
+    }
+
+    ::-webkit-scrollbar-thumb:hover {
+      background: #8b9eff;
+    }
+
+    * {
+      scrollbar-color: #d4c8ff transparent;
+      scrollbar-width: thin;
+    }
+  </style>
+</head>
+
+<body class="min-h-screen overflow-x-hidden bg-[#f5f3ff] text-[#1a1a4d] antialiased">
+  <div class="pointer-events-none fixed inset-0 -z-10 overflow-hidden">
+    <div class="absolute -left-24 top-28 h-80 w-80 rounded-full bg-[#d4c8ff]/40 blur-3xl"></div>
+    <div class="absolute -right-20 top-[30rem] h-96 w-96 rounded-full bg-[#d896ff]/40 blur-3xl"></div>
+    <div class="absolute bottom-0 left-1/3 h-72 w-72 rounded-full bg-[#8b9eff]/20 blur-3xl"></div>
+  </div>
+
+  <header class="relative z-50 px-4 pt-4 sm:px-6 lg:px-8">
+    <nav class="mx-auto flex max-w-6xl items-center justify-between rounded-2xl border border-[#d4c8ff] bg-[#fffbff]/90 px-4 py-3 shadow-[0_8px_30px_rgba(26,26,77,0.08)] backdrop-blur sm:px-5">
+      <a href="./index.html" class="flex items-center gap-3" aria-label="PixelCat home">
+        <img src="./assets/PixelCatIco.png" alt="PixelCat" class="h-9 w-9" />
+        <span class="text-sm font-semibold tracking-[-0.04em]" style="font-family: 'Pixelify Sans', sans-serif; background: linear-gradient(90deg, #8b9eff 0%, #d4c8ff 50%, #9ca3af 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;">PIXELCAT</span>
+      </a>
+
+      <div class="hidden items-center gap-7 md:flex">
+      </div>
+
+      <div class="hidden items-center gap-2 md:flex">
+        <a href="./index.html" class="inline-flex items-center gap-2 rounded-xl border border-[#d4c8ff] bg-[#fffbff] px-4 py-2 text-sm font-semibold transition hover:bg-white">
+          Back
+        </a>
+      </div>
+
+      <button id="menuButton" class="grid h-10 w-10 place-items-center rounded-xl border border-[#d4c8ff] bg-white md:hidden" aria-label="Open menu" aria-expanded="false">
+        <iconify-icon id="menuIcon" icon="solar:hamburger-menu-linear" class="text-xl" stroke-width="1.5"></iconify-icon>
+      </button>
+    </nav>
+  </header>
+
+  <main>
+    <section class="px-4 pb-20 pt-16 sm:px-6 sm:pt-24 lg:px-8">
+      <div class="mx-auto max-w-4xl text-center">
+        <h1 class="text-[3.5rem] font-semibold leading-tight tracking-[-0.065em] sm:text-6xl lg:text-7xl">
+          Download PixelCat
+        </h1>
+
+        <p class="mx-auto mt-8 max-w-2xl text-base leading-7 text-[#6b5ba0] sm:text-lg sm:leading-8">
+          Get your pixel cat on macOS or Windows. Start with a free trial and unlock all features with a license.
+        </p>
+
+        <div class="mt-16 grid gap-8 sm:grid-cols-2 lg:gap-12">
+          <!-- macOS Card -->
+          <div class="rounded-2xl border-2 border-[#d4c8ff] bg-[#fffbff] p-8">
+            <div class="flex items-center justify-center gap-3 mb-6">
+              <iconify-icon icon="solar:apple-linear" class="text-4xl text-[#8b9eff]"></iconify-icon>
+              <h2 class="text-2xl font-semibold text-[#1a1a4d]">macOS</h2>
+            </div>
+            
+            <p class="text-sm text-[#6b5ba0] mb-6">Compatible with macOS 10.15 and later</p>
+            
+            <div class="space-y-3 mb-6">
+              <div class="flex items-start gap-3">
+                <span class="text-[#8b9eff] font-bold">✓</span>
+                <span class="text-sm text-[#6b5ba0]">Intel & Apple Silicon</span>
+              </div>
+            </div>
+
+            <button onclick="downloadMacOS()" class="w-full rounded-xl bg-[#1a1a4d] px-4 py-3 text-sm font-semibold text-white shadow-[4px_4px_0_#d4c8ff] transition hover:-translate-y-0.5 hover:shadow-[5px_5px_0_#d4c8ff]">
+              Download for macOS
+            </button>
+          </div>
+
+          <!-- Windows Card -->
+          <div class="rounded-2xl border-2 border-[#d4c8ff] bg-[#fffbff] p-8">
+            <div class="flex items-center justify-center gap-3 mb-6">
+              <iconify-icon icon="solar:windows-linear" class="text-4xl text-[#8b9eff]"></iconify-icon>
+              <h2 class="text-2xl font-semibold text-[#1a1a4d]">Windows</h2>
+            </div>
+            
+            <p class="text-sm text-[#6b5ba0] mb-6">Compatible with Windows 10 and later</p>
+            
+            <div class="space-y-3 mb-6">
+              <div class="flex items-start gap-3">
+                <span class="text-[#8b9eff] font-bold">✓</span>
+                <span class="text-sm text-[#6b5ba0]">x64 & x86 support</span>
+              </div>
+            </div>
+
+            <button onclick="downloadWindows()" class="w-full rounded-xl bg-[#1a1a4d] px-4 py-3 text-sm font-semibold text-white shadow-[4px_4px_0_#d4c8ff] transition hover:-translate-y-0.5 hover:shadow-[5px_5px_0_#d4c8ff]">
+              Download for Windows
+            </button>
+          </div>
+        </div>
+
+        <!-- System Requirements -->
+        <div class="mt-16 rounded-2xl border border-[#d4c8ff] bg-[#fffbff] p-8">
+          <h3 class="text-xl font-semibold text-[#1a1a4d] mb-6">System Requirements</h3>
+          <div class="grid gap-6 sm:grid-cols-2 text-left">
+            <div>
+              <h4 class="font-semibold text-[#1a1a4d] mb-3">macOS</h4>
+              <ul class="space-y-2 text-sm text-[#6b5ba0]">
+                <li>• macOS 10.15 Catalina or later</li>
+                <li>• 50 MB free disk space</li>
+                <li>• Intel or Apple Silicon processor</li>
+              </ul>
+            </div>
+            <div>
+              <h4 class="font-semibold text-[#1a1a4d] mb-3">Windows</h4>
+              <ul class="space-y-2 text-sm text-[#6b5ba0]">
+                <li>• Windows 10 or later</li>
+                <li>• 50 MB free disk space</li>
+                <li>• .NET Runtime 6.0 or later</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+
+        <!-- FAQ -->
+        <div class="mt-16">
+          <h3 class="text-2xl font-semibold text-[#1a1a4d] mb-8">Frequently Asked Questions</h3>
+          <div class="space-y-4">
+            <div class="rounded-2xl border border-[#d4c8ff] bg-[#fffbff] p-6 text-left">
+              <h4 class="font-semibold text-[#1a1a4d] mb-2">Can I use one license on multiple devices?</h4>
+              <p class="text-sm text-[#6b5ba0]">Yes! One license works across all your devices—macOS and Windows.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <!-- Footer -->
+  <footer class="border-t border-[#d4c8ff] bg-[#f5f3ff] px-4 py-8 sm:px-6 lg:px-8">
+    <div class="mx-auto max-w-6xl">
+      <div class="flex flex-col items-center justify-between gap-6 sm:flex-row">
+        <p class="text-sm text-[#6b5ba0]">©2026 PixelCat</p>
+        <div class="flex gap-6">
+          <a href="#terms" class="text-sm text-[#6b5ba0] transition hover:text-[#1a1a4d]">TERMS</a>
+          <a href="#privacy" class="text-sm text-[#6b5ba0] transition hover:text-[#1a1a4d]">PRIVACY</a>
+        </div>
+      </div>
+    </div>
+  </footer>
+
+  <script>
+    function downloadMacOS() {
+      // Replace with actual download URL
+      window.location.href = 'https://example.com/download/pixelcat-mac.dmg';
+      console.log('Downloading PixelCat for macOS');
+    }
+
+    function downloadWindows() {
+      // Replace with actual download URL
+      window.location.href = 'https://example.com/download/pixelcat-windows.exe';
+      console.log('Downloading PixelCat for Windows');
+    }
+  </script>
+</body>
+</html>

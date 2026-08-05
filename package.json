@@ -1,0 +1,18 @@
+{
+  "name": "pixelcat-website",
+  "version": "1.0.0",
+  "description": "PixelCat Website - A companion cat on your desktop",
+  "private": true,
+  "scripts": {
+    "start": "node server.js",
+    "build": "echo 'No build step needed for static site'"
+  },
+  "keywords": [
+    "pixelcat",
+    "desktop-pet",
+    "pomodoro",
+    "productivity"
+  ],
+  "author": "jandev-png",
+  "license": "CC-BY-NC-4.0"
+}

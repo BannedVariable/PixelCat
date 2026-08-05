@@ -1,0 +1,1614 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>PixelCat — A cat that lives in your computer</title>
+  <meta name="description" content="PixelCat reacts to your mouse, keyboard, and scrolls. Reminds you to stretch, includes a Pomodoro timer. Customize its color and pattern to make it feel like your own cat.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Manrope:wght@400;500;600&family=Pixelify+Sans:wght@500;600&display=swap" rel="stylesheet">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://code.iconify.design/iconify-icon/2.1.0/iconify-icon.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <style>
+    body {
+      font-family: 'Manrope', sans-serif;
+    }
+    h1, h2, h3 {
+      font-family: 'Pixelify Sans', sans-serif;
+    }
+
+    /* Custom Scrollbar */
+    ::-webkit-scrollbar {
+      width: 10px;
+    }
+
+    ::-webkit-scrollbar-track {
+      background: transparent;
+    }
+
+    ::-webkit-scrollbar-thumb {
+      background: #d4c8ff;
+      border-radius: 5px;
+    }
+
+    ::-webkit-scrollbar-thumb:hover {
+      background: #8b9eff;
+    }
+
+    /* Firefox Scrollbar */
+    * {
+      scrollbar-color: #d4c8ff transparent;
+      scrollbar-width: thin;
+    }
+  </style>
+</head>
+
+<body class="min-h-screen overflow-x-hidden bg-[#f5f3ff] text-[#1a1a4d] antialiased">
+  <div class="pointer-events-none fixed inset-0 -z-10 overflow-hidden">
+    <div class="absolute -left-24 top-28 h-80 w-80 rounded-full bg-[#d4c8ff]/40 blur-3xl"></div>
+    <div class="absolute -right-20 top-[30rem] h-96 w-96 rounded-full bg-[#d896ff]/40 blur-3xl"></div>
+    <div class="absolute bottom-0 left-1/3 h-72 w-72 rounded-full bg-[#8b9eff]/20 blur-3xl"></div>
+  </div>
+
+  <header class="relative z-50 px-4 pt-4 sm:px-6 lg:px-8">
+    <nav class="mx-auto flex max-w-6xl items-center justify-between rounded-2xl border border-[#d4c8ff] bg-[#fffbff]/90 px-4 py-3 shadow-[0_8px_30px_rgba(26,26,77,0.08)] backdrop-blur sm:px-5">
+      <a href="#top" class="flex items-center gap-3" aria-label="PixelCat home">
+        <img src="./assets/PixelCatIco.png" alt="PixelCat" class="h-9 w-9" />
+        <span class="text-sm font-semibold tracking-[-0.04em]" style="font-family: 'Pixelify Sans', sans-serif; background: linear-gradient(90deg, #8b9eff 0%, #d4c8ff 50%, #9ca3af 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;">PIXELCAT</span>
+      </a>
+
+      <div class="hidden items-center gap-7 md:flex">
+        <a href="./showcase.html" class="text-sm text-[#6b5ba0] transition hover:text-[#1a1a4d]">Showcase</a>
+      </div>
+
+      <div class="hidden items-center gap-2 md:flex">
+        <!-- Login Button (shown when not logged in) -->
+        <button id="authButton" onclick="handleAuthButtonClick()" class="inline-flex items-center gap-2 rounded-xl border border-[#1a1a4d] bg-[#1a1a4d] px-4 py-2 text-sm font-medium text-white shadow-[3px_3px_0_#d4c8ff] transition hover:-translate-y-0.5 hover:shadow-[4px_5px_0_#d4c8ff]">
+          Login / Sign up
+        </button>
+        
+        <!-- Profile Picture Button (shown when logged in) -->
+        <button id="profileButton" onclick="handleAuthButtonClick()" class="hidden h-10 w-10 rounded-lg border-2 border-[#d4c8ff] bg-[#f5f3ff] transition hover:border-[#8b9eff] overflow-hidden">
+          <img id="headerProfilePic" src="" alt="Profile" class="h-full w-full object-cover" />
+        </button>
+        
+        <span class="mx-2 h-4 w-px bg-[#d4c8ff]"></span>
+        <button id="languageBtn" onclick="openLanguageSelector()" class="rounded-xl px-3 py-2 text-sm font-medium text-[#6b5ba0] transition hover:bg-[#f0e8ff]">English</button>
+      </div>
+
+      <button id="menuButton" class="grid h-10 w-10 place-items-center rounded-xl border border-[#d4c8ff] bg-white md:hidden" aria-label="Open menu" aria-expanded="false">
+        <iconify-icon id="menuIcon" icon="solar:hamburger-menu-linear" class="text-xl" stroke-width="1.5"></iconify-icon>
+      </button>
+    </nav>
+
+    <div id="mobileMenu" class="mx-auto mt-2 hidden max-w-6xl rounded-2xl border border-[#d4c8ff] bg-[#fffbff] p-3 shadow-xl md:hidden">
+      <a href="#showcase" class="block rounded-xl px-4 py-3 text-sm hover:bg-[#f0e8ff]">Showcase</a>
+      <a href="#download" class="block rounded-xl px-4 py-3 text-sm hover:bg-[#f0e8ff]">Download</a>
+      <button id="mobileAuthButton" onclick="handleAuthButtonClick()" class="mt-2 flex w-full items-center justify-center gap-2 rounded-xl bg-[#1a1a4d] px-4 py-3 text-sm font-medium text-white">
+        Login / Sign up
+      </button>
+      
+      <!-- Mobile Profile View -->
+      <div id="mobileProfileView" class="hidden mt-2 space-y-2">
+        <div class="flex items-center gap-3 px-4 py-3 rounded-xl bg-[#f5f3ff]">
+          <img id="mobileProfilePic" src="" alt="Profile" class="h-10 w-10 rounded-lg border border-[#d4c8ff] object-cover" />
+          <div>
+            <p class="text-sm font-semibold text-[#1a1a4d]" id="mobileUsername"></p>
+            <p class="text-xs text-[#9ca3af]">Connected</p>
+          </div>
+        </div>
+        <button onclick="editProfile()" class="w-full px-4 py-3 rounded-xl text-left text-sm text-[#6b5ba0] hover:bg-[#f5f3ff] transition">
+          Profile Settings
+        </button>
+        <button onclick="handleLogout()" class="w-full px-4 py-3 rounded-xl text-left text-sm text-red-600 hover:bg-red-50 transition">
+          Logout
+        </button>
+      </div>
+      
+      <button id="mobileLangBtn" onclick="openLanguageSelector()" class="mt-2 block w-full rounded-xl px-4 py-3 text-sm text-left hover:bg-[#f0e8ff]">English</button>
+    </div>
+  </header>
+
+  <main id="top">
+    <section class="px-4 pb-20 pt-16 sm:px-6 sm:pt-24 lg:px-8 lg:pb-28">
+      <div class="mx-auto max-w-4xl text-center">
+        <h1 class="text-[3.5rem] font-semibold leading-tight tracking-[-0.065em] sm:text-6xl lg:text-7xl">
+          A pixel cat<br>
+          <span class="text-[#8b9eff]">that lives in<br>your computer</span>
+        </h1>
+
+        <p class="mx-auto mt-8 max-w-2xl text-base leading-7 text-[#6b5ba0] sm:text-lg sm:leading-8">
+          PixelCat reacts to your mouse, keyboard, and scrolls. Reminds you to stretch, includes a Pomodoro timer. Customize its color and pattern to make it feel like your own cat.
+        </p>
+
+        <div class="mt-10 flex flex-col items-center justify-center gap-4 sm:flex-row">
+          <button onclick="scrollToDownload()" class="inline-flex w-full items-center justify-center gap-2 rounded-xl border border-[#1a1a4d] bg-[#1a1a4d] px-6 py-4 text-sm font-semibold text-white shadow-[4px_5px_0_#d4c8ff] transition hover:-translate-y-1 hover:shadow-[5px_7px_0_#d4c8ff] sm:w-auto">
+            <iconify-icon icon="solar:download-minimalistic-linear" class="text-lg" stroke-width="1.5"></iconify-icon>
+            Download
+          </button>
+          <a href="#features" class="inline-flex w-full items-center justify-center gap-2 rounded-xl border border-[#d4c8ff] bg-[#fffbff] px-6 py-4 text-sm font-semibold transition hover:-translate-y-0.5 hover:bg-white sm:w-auto">
+            Learn more
+            <iconify-icon icon="solar:arrow-down-linear" stroke-width="1.5"></iconify-icon>
+          </a>
+        </div>
+      </div>
+    </section>
+
+    <section id="features" class="scroll-mt-24 px-4 py-20 sm:px-6 sm:py-28 lg:px-8">
+      <div class="mx-auto max-w-6xl">
+        <h2 class="mb-4 text-center text-sm uppercase tracking-[0.22em] text-[#8b9eff]" style="font-family:'DM Mono',monospace;">Features</h2>
+        <h3 class="text-center text-4xl font-semibold tracking-[-0.05em] sm:text-5xl">What PixelCat does</h3>
+
+        <div class="mt-12 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+          <!-- 1 -->
+          <article class="rounded-2xl border border-[#d4c8ff] bg-[#fffbff] p-6">
+            <div class="flex items-start gap-3">
+              <span class="text-xl font-bold text-[#8b9eff]">01</span>
+              <div class="min-w-0">
+                <h4 class="font-semibold text-[#1a1a4d]">Your Cat's Pattern</h4>
+                <p class="mt-2 text-sm text-[#6b5ba0]">Give PixelCat the same markings as the cat you live with.</p>
+              </div>
+            </div>
+          </article>
+
+          <!-- 2 -->
+          <article class="rounded-2xl border border-[#d4c8ff] bg-[#fffbff] p-6">
+            <div class="flex items-start gap-3">
+              <span class="text-xl font-bold text-[#8b9eff]">02</span>
+              <div class="min-w-0">
+                <h4 class="font-semibold text-[#1a1a4d]">Eye Follow</h4>
+                <p class="mt-2 text-sm text-[#6b5ba0]">Move your mouse and PixelCat follows it with its eyes.</p>
+              </div>
+            </div>
+          </article>
+
+          <!-- 3 -->
+          <article class="rounded-2xl border border-[#d4c8ff] bg-[#fffbff] p-6">
+            <div class="flex items-start gap-3">
+              <span class="text-xl font-bold text-[#8b9eff]">03</span>
+              <div class="min-w-0">
+                <h4 class="font-semibold text-[#1a1a4d]">Mochi Drag</h4>
+                <p class="mt-2 text-sm text-[#6b5ba0]">Drag to lift it and PixelCat stretches like mochi. Shake it and it wobbles!</p>
+              </div>
+            </div>
+          </article>
+
+          <!-- 4 -->
+          <article class="rounded-2xl border border-[#d4c8ff] bg-[#fffbff] p-6">
+            <div class="flex items-start gap-3">
+              <span class="text-xl font-bold text-[#8b9eff]">04</span>
+              <div class="min-w-0">
+                <h4 class="font-semibold text-[#1a1a4d]">Mouse Hunt</h4>
+                <p class="mt-2 text-sm text-[#6b5ba0]">Move your mouse fast and PixelCat tries to hunt the cursor.</p>
+              </div>
+            </div>
+          </article>
+
+          <!-- 5 -->
+          <article class="rounded-2xl border border-[#d4c8ff] bg-[#fffbff] p-6">
+            <div class="flex items-start gap-3">
+              <span class="text-xl font-bold text-[#8b9eff]">05</span>
+              <div class="min-w-0">
+                <h4 class="font-semibold text-[#1a1a4d]">Purring Pets</h4>
+                <p class="mt-2 text-sm text-[#6b5ba0]">Pet PixelCat's head with your mouse and it purrs happily.</p>
+              </div>
+            </div>
+          </article>
+
+          <!-- 6 -->
+          <article class="rounded-2xl border border-[#d4c8ff] bg-[#fffbff] p-6">
+            <div class="flex items-start gap-3">
+              <span class="text-xl font-bold text-[#8b9eff]">06</span>
+              <div class="min-w-0">
+                <h4 class="font-semibold text-[#1a1a4d]">Keyboard Kneading</h4>
+                <p class="mt-2 text-sm text-[#6b5ba0]">When you type, PixelCat kneads the keyboard with its tiny paws.</p>
+              </div>
+            </div>
+          </article>
+
+          <!-- 7 -->
+          <article class="rounded-2xl border border-[#d4c8ff] bg-[#fffbff] p-6">
+            <div class="flex items-start gap-3">
+              <span class="text-xl font-bold text-[#8b9eff]">07</span>
+              <div class="min-w-0">
+                <h4 class="font-semibold text-[#1a1a4d]">Overheat Mode</h4>
+                <p class="mt-2 text-sm text-[#6b5ba0]">Type too fast and PixelCat turns red, with steam puffing over its head.</p>
+              </div>
+            </div>
+          </article>
+
+          <!-- 8 -->
+          <article class="rounded-2xl border border-[#d4c8ff] bg-[#fffbff] p-6">
+            <div class="flex items-start gap-3">
+              <span class="text-xl font-bold text-[#8b9eff]">08</span>
+              <div class="min-w-0">
+                <h4 class="font-semibold text-[#1a1a4d]">Stretch Reminder</h4>
+                <p class="mt-2 text-sm text-[#6b5ba0]">Set a timer and PixelCat grows big to stretch with you.</p>
+              </div>
+            </div>
+          </article>
+
+          <!-- 9 -->
+          <article class="rounded-2xl border border-[#d4c8ff] bg-[#fffbff] p-6">
+            <div class="flex items-start gap-3">
+              <span class="text-xl font-bold text-[#8b9eff]">09</span>
+              <div class="min-w-0">
+                <h4 class="font-semibold text-[#1a1a4d]">Drink Water Reminder</h4>
+                <p class="mt-2 text-sm text-[#6b5ba0]">Set a timer and PixelCat pops up to remind you to drink water.</p>
+              </div>
+            </div>
+          </article>
+
+          <!-- 10 -->
+          <article class="rounded-2xl border border-[#d4c8ff] bg-[#fffbff] p-6">
+            <div class="flex items-start gap-3">
+              <span class="text-xl font-bold text-[#8b9eff]">10</span>
+              <div class="min-w-0">
+                <h4 class="font-semibold text-[#1a1a4d]">Paper Unroll</h4>
+                <p class="mt-2 text-sm text-[#6b5ba0]">Scroll the page and PixelCat unspools a roll of paper with its paws.</p>
+              </div>
+            </div>
+          </article>
+
+          <!-- 11 -->
+          <article class="rounded-2xl border border-[#d4c8ff] bg-[#fffbff] p-6">
+            <div class="flex items-start gap-3">
+              <span class="text-xl font-bold text-[#8b9eff]">11</span>
+              <div class="min-w-0">
+                <h4 class="font-semibold text-[#1a1a4d]">Thinking Along</h4>
+                <p class="mt-2 text-sm text-[#6b5ba0]">While an AI agent is thinking, PixelCat puts on a thinking face too.</p>
+              </div>
+            </div>
+          </article>
+
+          <!-- 12 -->
+          <article class="rounded-2xl border border-[#d4c8ff] bg-[#fffbff] p-6">
+            <div class="flex items-start gap-3">
+              <span class="text-xl font-bold text-[#8b9eff]">12</span>
+              <div class="min-w-0">
+                <h4 class="font-semibold text-[#1a1a4d]">Agent Done Jump</h4>
+                <p class="mt-2 text-sm text-[#6b5ba0]">When an AI agent finishes, PixelCat does a happy hop and meows.</p>
+              </div>
+            </div>
+          </article>
+
+          <!-- 13 -->
+          <article class="rounded-2xl border border-[#d4c8ff] bg-[#fffbff] p-6">
+            <div class="flex items-start gap-3">
+              <span class="text-xl font-bold text-[#8b9eff]">13</span>
+              <div class="min-w-0">
+                <h4 class="font-semibold text-[#1a1a4d]">Pomodoro Timer</h4>
+                <p class="mt-2 text-sm text-[#6b5ba0]">Set focus and break loops with a pixel timer floating next to PixelCat.</p>
+              </div>
+            </div>
+          </article>
+
+          <!-- 14 -->
+          <article class="rounded-2xl border border-[#d4c8ff] bg-[#fffbff] p-6">
+            <div class="flex items-start gap-3">
+              <span class="text-xl font-bold text-[#8b9eff]">14</span>
+              <div class="min-w-0">
+                <h4 class="font-semibold text-[#1a1a4d]">Message Reminder</h4>
+                <p class="mt-2 text-sm text-[#6b5ba0]">Choose a time and message, and PixelCat meows to remind you.</p>
+              </div>
+            </div>
+          </article>
+
+          <!-- 15 -->
+          <article class="rounded-2xl border border-[#d4c8ff] bg-[#fffbff] p-6">
+            <div class="flex items-start gap-3">
+              <span class="text-xl font-bold text-[#8b9eff]">15</span>
+              <div class="min-w-0">
+                <h4 class="font-semibold text-[#1a1a4d]">Fixed Message</h4>
+                <p class="mt-2 text-sm text-[#6b5ba0]">Pin an important note above PixelCat's head so it stays in sight.</p>
+              </div>
+            </div>
+          </article>
+
+          <!-- 16 -->
+          <article class="rounded-2xl border border-[#d4c8ff] bg-[#fffbff] p-6">
+            <div class="flex items-start gap-3">
+              <span class="text-xl font-bold text-[#8b9eff]">16</span>
+              <div class="min-w-0">
+                <h4 class="font-semibold text-[#1a1a4d]">Tell Your Name</h4>
+                <p class="mt-2 text-sm text-[#6b5ba0]">Tell PixelCat your name and it will call you by name during reminders.</p>
+              </div>
+            </div>
+          </article>
+
+          <!-- 17 -->
+          <article class="rounded-2xl border border-[#d4c8ff] bg-[#fffbff] p-6">
+            <div class="flex items-start gap-3">
+              <span class="text-xl font-bold text-[#8b9eff]">17</span>
+              <div class="min-w-0">
+                <h4 class="font-semibold text-[#1a1a4d]">Multi-Device License</h4>
+                <p class="mt-2 text-sm text-[#6b5ba0]">Use one license across your devices so PixelCat follows you everywhere.</p>
+              </div>
+            </div>
+          </article>
+
+          <!-- 18 -->
+          <article class="rounded-2xl border border-[#d4c8ff] bg-[#fffbff] p-6">
+            <div class="flex items-start gap-3">
+              <span class="text-xl font-bold text-[#8b9eff]">18</span>
+              <div class="min-w-0">
+                <h4 class="font-semibold text-[#1a1a4d]">Peek Mode</h4>
+                <p class="mt-2 text-sm text-[#6b5ba0]">While you watch videos, PixelCat peeks from the screen edge and stays out of the way.</p>
+              </div>
+            </div>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <section id="download" class="scroll-mt-24 border-t border-[#d4c8ff] px-4 py-20 sm:px-6 sm:py-28 lg:px-8">
+      <div class="mx-auto max-w-6xl">
+        <div class="grid gap-8 sm:grid-cols-2 sm:gap-12 lg:gap-20">
+          <!-- Left: Features Card -->
+          <div class="space-y-4 rounded-2xl border-2 border-[#1a1a4d] bg-[#fffbff] p-6 shadow-[8px_8px_0_#d4c8ff]">
+            <h2 class="text-4xl font-semibold tracking-[-0.05em] sm:text-5xl">One cat.<br>Ready for your desktop.</h2>
+            <p class="text-sm leading-6 text-[#6b5ba0]">One tiny price for the full desktop cat: custom mapping, motion reactions, stretch breaks, and upcoming Pomodoro tools.</p>
+            
+            <div class="space-y-3 pt-4">
+              <div class="flex items-start gap-3">
+                <span class="mt-1 text-lg">✓</span>
+                <span class="text-sm text-[#6b5ba0]">All features included</span>
+              </div>
+              <div class="flex items-start gap-3">
+                <span class="mt-1 text-lg">✓</span>
+                <span class="text-sm text-[#6b5ba0]">Custom cat color & pattern mapping</span>
+              </div>
+              <div class="flex items-start gap-3">
+                <span class="mt-1 text-lg">✓</span>
+                <span class="text-sm text-[#6b5ba0]">Stretch reminders and Pomodoro updates</span>
+              </div>
+              <div class="flex items-start gap-3">
+                <span class="mt-1 text-lg">✓</span>
+                <span class="text-sm text-[#6b5ba0]">PixelCat for macOS and Windows • No telemetry</span>
+              </div>
+              <div class="flex items-start gap-3">
+                <span class="mt-1 text-lg">✓</span>
+                <span class="text-sm text-[#6b5ba0]">One license works across your devices</span>
+              </div>
+            </div>
+
+            <div class="pt-4 border-t border-[#d4c8ff]">
+              <p class="text-sm font-semibold text-[#1a1a4d]">Already purchased? <a href="#" class="underline hover:no-underline">Download PixelCat</a></p>
+            </div>
+          </div>
+
+          <!-- Right: Pricing Card -->
+          <div class="flex items-start">
+            <div class="w-full">
+              <div class="space-y-4 rounded-2xl border-2 border-[#1a1a4d] bg-[#fffbff] p-6 shadow-[8px_8px_0_#d4c8ff]">
+                <!-- Main Price -->
+                <div>
+                  <div class="flex items-baseline justify-between">
+                    <span class="text-sm font-semibold text-[#1a1a4d]">PixelCat License</span>
+                    <div class="flex items-baseline gap-1">
+                      <span class="text-4xl font-bold text-[#1a1a4d]">$3</span>
+                      <span class="text-xl text-[#6b5ba0]">.99</span>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Buy Button -->
+                <button onclick="buyNow()" class="w-full rounded-xl bg-[#1a1a4d] px-4 py-4 text-sm font-semibold text-white shadow-[4px_4px_0_#d4c8ff] transition hover:-translate-y-1 hover:shadow-[5px_6px_0_#d4c8ff]">
+                  BUY PIXELCAT
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <!-- Profile Dropdown Menu -->
+  <div id="profileDropdown" class="hidden fixed z-40 w-48 rounded-xl border-2 border-[#1a1a4d] bg-[#fffbff] shadow-[0_10px_40px_rgba(26,26,77,0.2)] overflow-hidden" style="top: 90px; right: 24px;">
+    <div class="p-4 border-b border-[#d4c8ff]">
+      <div class="flex items-center gap-3">
+        <img id="dropdownProfilePic" src="" alt="Profile" class="h-10 w-10 rounded-lg border border-[#d4c8ff]" />
+        <div>
+          <p class="text-sm font-semibold text-[#1a1a4d]" id="dropdownUsername"></p>
+          <p class="text-xs text-[#9ca3af]">Connected</p>
+        </div>
+      </div>
+    </div>
+    <div class="p-2 space-y-1">
+      <button onclick="editProfile()" class="w-full px-3 py-2 text-left text-sm text-[#6b5ba0] hover:bg-[#f5f3ff] rounded-lg transition">
+        Profile Settings
+      </button>
+      <button onclick="handleLogout()" class="w-full px-3 py-2 text-left text-sm text-red-600 hover:bg-red-50 rounded-lg transition">
+        Logout
+      </button>
+    </div>
+  </div>
+
+  <!-- Custom Alert Modal -->
+  <div id="customAlert" class="hidden fixed inset-0 z-[9999] flex items-center justify-center bg-black/50 backdrop-blur-sm">
+    <div class="w-full max-w-sm rounded-2xl border-2 border-[#1a1a4d] bg-[#fffbff] p-8 shadow-[0_20px_60px_rgba(26,26,77,0.3)]">
+      <p class="text-sm text-[#6b5ba0] mb-6" id="alertMessage"></p>
+      <button onclick="closeAlert()" class="w-full rounded-xl bg-[#1a1a4d] px-4 py-3 text-sm font-semibold text-white shadow-[4px_4px_0_#d4c8ff] transition hover:-translate-y-0.5 hover:shadow-[5px_5px_0_#d4c8ff]">
+        OK
+      </button>
+    </div>
+  </div>
+
+  <!-- Custom Confirm Modal -->
+  <div id="customConfirm" class="hidden fixed inset-0 z-[9999] flex items-center justify-center bg-black/50 backdrop-blur-sm">
+    <div class="w-full max-w-sm rounded-2xl border-2 border-[#1a1a4d] bg-[#fffbff] p-8 shadow-[0_20px_60px_rgba(26,26,77,0.3)]">
+      <p class="text-sm text-[#6b5ba0] mb-6" id="confirmMessage"></p>
+      <div class="flex gap-3">
+        <button onclick="confirmNo()" class="flex-1 rounded-xl border border-[#d4c8ff] bg-white px-4 py-3 text-sm font-semibold text-[#1a1a4d] transition hover:bg-[#f5f3ff]">
+          Cancel
+        </button>
+        <button onclick="confirmYes()" class="flex-1 rounded-xl bg-[#1a1a4d] px-4 py-3 text-sm font-semibold text-white shadow-[4px_4px_0_#d4c8ff] transition hover:-translate-y-0.5 hover:shadow-[5px_5px_0_#d4c8ff]">
+          Confirm
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Auth Modal -->
+  <div id="authModal" class="hidden fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm">
+    <div class="w-full max-w-md rounded-2xl border-2 border-[#1a1a4d] bg-[#fffbff] p-8 shadow-[0_20px_60px_rgba(26,26,77,0.3)]">
+      <div class="flex items-center justify-between mb-6">
+        <div class="flex items-center gap-2">
+          <img src="./assets/PixelCatIco.png" alt="PixelCat" class="h-6 w-6" />
+          <span class="font-semibold text-[#1a1a4d]">PixelCat Account</span>
+        </div>
+        <button onclick="closeAuthModal()" class="text-[#6b5ba0] hover:text-[#1a1a4d]">
+          <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+          </svg>
+        </button>
+      </div>
+
+      <!-- Login Form (Step 1: Enter License Key) -->
+      <form id="loginForm" onsubmit="handleLogin(event)" class="space-y-4">
+        <div>
+          <label class="block text-sm font-semibold text-[#1a1a4d] mb-2">License Key</label>
+          <input type="text" id="loginKey" placeholder="Enter your license key" class="w-full rounded-lg border border-[#d4c8ff] bg-[#f5f3ff] px-4 py-3 text-sm placeholder-[#9ca3af] focus:outline-none focus:border-[#8b9eff] focus:ring-2 focus:ring-[#8b9eff]/20" />
+        </div>
+        <button type="submit" class="w-full rounded-xl bg-[#1a1a4d] px-4 py-3 text-sm font-semibold text-white shadow-[4px_4px_0_#d4c8ff] transition hover:-translate-y-0.5 hover:shadow-[5px_5px_0_#d4c8ff]">
+          Login
+        </button>
+      </form>
+      <form id="profileForm" class="hidden space-y-4" onsubmit="handleProfileSetup(event)">
+        <p class="text-sm text-[#6b5ba0]">Welcome! Let's set up your profile.</p>
+        
+        <div>
+          <label class="block text-sm font-semibold text-[#1a1a4d] mb-2">Username</label>
+          <input type="text" id="usernameInput" placeholder="Choose your username" class="w-full rounded-lg border border-[#d4c8ff] bg-[#f5f3ff] px-4 py-3 text-sm placeholder-[#9ca3af] focus:outline-none focus:border-[#8b9eff] focus:ring-2 focus:ring-[#8b9eff]/20" />
+        </div>
+
+        <!-- Drag & Drop Profile Picture Box -->
+        <div>
+          <label class="block text-sm font-semibold text-[#1a1a4d] mb-2">Profile Picture</label>
+          <div id="profilePicDropZone" class="relative w-full h-32 rounded-xl border-2 border-dashed border-[#d4c8ff] bg-[#f5f3ff] transition flex items-center justify-center cursor-pointer hover:border-[#8b9eff] hover:bg-[#f0e8ff]">
+            <input type="file" id="profilePicInput" accept="image/*" class="hidden" />
+            <div class="text-center pointer-events-none">
+              <svg class="w-8 h-8 mx-auto mb-2 text-[#8b9eff]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
+              </svg>
+              <p class="text-sm font-semibold text-[#1a1a4d]">Drag your photo here</p>
+              <p class="text-xs text-[#9ca3af]">or click to select</p>
+            </div>
+            <!-- Preview Image (hidden by default) -->
+            <img id="profilePicPreview" src="" alt="Preview" class="hidden absolute inset-0 w-full h-full object-cover rounded-lg" />
+          </div>
+          <p class="text-xs text-[#9ca3af] mt-2">Optional - you can add this later</p>
+        </div>
+
+        <button type="submit" class="w-full rounded-xl bg-[#1a1a4d] px-4 py-3 text-sm font-semibold text-white shadow-[4px_4px_0_#d4c8ff] transition hover:-translate-y-0.5 hover:shadow-[5px_5px_0_#d4c8ff]">
+          Complete Setup
+        </button>
+        <button type="button" onclick="goBackToLogin()" class="w-full rounded-xl border border-[#d4c8ff] bg-white px-4 py-3 text-sm font-semibold text-[#1a1a4d] transition hover:bg-[#f5f3ff]">
+          Back
+        </button>
+      </form>
+
+      <!-- Account View (Step 3: Logged In) -->
+      <div id="accountView" class="hidden space-y-4">
+        <div class="flex items-center gap-3 mb-4">
+          <img id="profilePicDisplay" src="" alt="Profile" class="h-12 w-12 rounded-lg border border-[#d4c8ff]" />
+          <div>
+            <p class="text-sm font-semibold text-[#1a1a4d]" id="usernameDisplay"></p>
+            <p class="text-xs text-[#9ca3af]">Account active</p>
+          </div>
+        </div>
+
+        <button onclick="editProfile()" class="w-full rounded-xl bg-[#8b9eff] px-4 py-3 text-sm font-semibold text-white shadow-[4px_4px_0_#d4c8ff] transition hover:-translate-y-0.5 hover:shadow-[5px_5px_0_#d4c8ff]">
+          Edit Profile
+        </button>
+
+        <button onclick="handleLogout()" class="w-full rounded-xl border border-[#d4c8ff] bg-white px-4 py-3 text-sm font-semibold text-[#1a1a4d] transition hover:bg-[#f5f3ff]">
+          Logout
+        </button>
+      </div>
+
+      <!-- Edit Profile Form (Step 4: Update Profile) -->
+      <form id="editProfileForm" class="hidden space-y-4" onsubmit="handleProfileUpdate(event)">
+        <div>
+          <label class="block text-sm font-semibold text-[#1a1a4d] mb-2">Username</label>
+          <input type="text" id="editUsernameInput" placeholder="Choose your username" class="w-full rounded-lg border border-[#d4c8ff] bg-[#f5f3ff] px-4 py-3 text-sm placeholder-[#9ca3af] focus:outline-none focus:border-[#8b9eff] focus:ring-2 focus:ring-[#8b9eff]/20" />
+        </div>
+
+        <!-- Drag & Drop Profile Picture Box -->
+        <div>
+          <label class="block text-sm font-semibold text-[#1a1a4d] mb-2">Profile Picture</label>
+          <div id="editProfilePicDropZone" class="relative w-full h-32 rounded-xl border-2 border-dashed border-[#d4c8ff] bg-[#f5f3ff] transition flex items-center justify-center cursor-pointer hover:border-[#8b9eff] hover:bg-[#f0e8ff]">
+            <input type="file" id="editProfilePicInput" accept="image/*" class="hidden" />
+            <div id="editProfilePicPlaceholder" class="text-center pointer-events-none">
+              <svg class="w-8 h-8 mx-auto mb-2 text-[#8b9eff]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
+              </svg>
+              <p class="text-sm font-semibold text-[#1a1a4d]">Drag your photo here</p>
+              <p class="text-xs text-[#9ca3af]">or click to select</p>
+            </div>
+            <!-- Preview Image (hidden by default) -->
+            <img id="editProfilePicPreview" src="" alt="Preview" class="hidden absolute inset-0 w-full h-full object-cover rounded-lg" />
+          </div>
+        </div>
+
+        <button type="submit" class="w-full rounded-xl bg-[#1a1a4d] px-4 py-3 text-sm font-semibold text-white shadow-[4px_4px_0_#d4c8ff] transition hover:-translate-y-0.5 hover:shadow-[5px_5px_0_#d4c8ff]">
+          Save Changes
+        </button>
+        <button type="button" onclick="cancelEdit()" class="w-full rounded-xl border border-[#d4c8ff] bg-white px-4 py-3 text-sm font-semibold text-[#1a1a4d] transition hover:bg-[#f5f3ff]">
+          Cancel
+        </button>
+      </form>
+    </div>
+  </div>
+
+  <script>
+    // Initialize Supabase client - SAME as desktop app
+    const SUPABASE_URL = 'https://aruivlzkiqknqldefegp.supabase.co';
+    const SUPABASE_ANON_KEY = 'sb_publishable_U9rHF4DDovZLn0RY3azpwg_W56itNco';
+    
+    window.supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+    const menuButton = document.getElementById('menuButton');
+    const mobileMenu = document.getElementById('mobileMenu');
+
+    menuButton?.addEventListener('click', () => {
+      mobileMenu.classList.toggle('hidden');
+    });
+
+    // Initialize auth state on page load
+    document.addEventListener('DOMContentLoaded', () => {
+      initializeAuthState();
+      setupModalClickHandler();
+      setupDragAndDrop();
+    });
+
+    // Custom alert/confirm system
+    let confirmCallback = null;
+
+    function showAlert(message) {
+      document.getElementById('alertMessage').textContent = message;
+      document.getElementById('customAlert').classList.remove('hidden');
+      document.body.style.overflow = 'hidden';
+    }
+
+    function closeAlert() {
+      document.getElementById('customAlert').classList.add('hidden');
+      document.body.style.overflow = 'auto';
+    }
+
+    function showConfirm(message, callback) {
+      confirmCallback = callback;
+      document.getElementById('confirmMessage').textContent = message;
+      document.getElementById('customConfirm').classList.remove('hidden');
+      document.body.style.overflow = 'hidden';
+    }
+
+    function confirmYes() {
+      document.getElementById('customConfirm').classList.add('hidden');
+      document.body.style.overflow = 'auto';
+      if (confirmCallback) {
+        confirmCallback(true);
+      }
+    }
+
+    function confirmNo() {
+      document.getElementById('customConfirm').classList.add('hidden');
+      document.body.style.overflow = 'auto';
+      if (confirmCallback) {
+        confirmCallback(false);
+      }
+    }
+
+    function setupDragAndDrop() {
+      // Setup drag and drop for profile form
+      setupDragAndDropZone('profilePicDropZone', 'profilePicInput', 'profilePicPreview');
+      
+      // Setup drag and drop for edit form
+      setupDragAndDropZone('editProfilePicDropZone', 'editProfilePicInput', 'editProfilePicPreview', 'editProfilePicPlaceholder');
+    }
+
+    function setupDragAndDropZone(dropZoneId, inputId, previewId, placeholderId) {
+      const dropZone = document.getElementById(dropZoneId);
+      const fileInput = document.getElementById(inputId);
+      const preview = document.getElementById(previewId);
+      const placeholder = placeholderId ? document.getElementById(placeholderId) : null;
+
+      // Click to select
+      dropZone.addEventListener('click', () => fileInput.click());
+
+      // Prevent default drag behaviors
+      ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+        dropZone.addEventListener(eventName, preventDefaults, false);
+        document.body.addEventListener(eventName, preventDefaults, false);
+      });
+
+      // Highlight drop zone when item is dragged over it
+      ['dragenter', 'dragover'].forEach(eventName => {
+        dropZone.addEventListener(eventName, () => {
+          dropZone.classList.add('border-[#8b9eff]', 'bg-[#f0e8ff]');
+        });
+      });
+
+      ['dragleave', 'drop'].forEach(eventName => {
+        dropZone.addEventListener(eventName, () => {
+          dropZone.classList.remove('border-[#8b9eff]', 'bg-[#f0e8ff]');
+        });
+      });
+
+      // Handle dropped files
+      dropZone.addEventListener('drop', (e) => {
+        const dt = e.dataTransfer;
+        const files = dt.files;
+        handleFiles(files, fileInput, preview, placeholder);
+      });
+
+      // Handle file selection
+      fileInput.addEventListener('change', (e) => {
+        handleFiles(e.target.files, fileInput, preview, placeholder);
+      });
+    }
+
+    function preventDefaults(e) {
+      e.preventDefault();
+      e.stopPropagation();
+    }
+
+    function handleFiles(files, fileInput, preview, placeholder) {
+      if (files.length === 0) return;
+
+      const file = files[0];
+
+      // Validate file type
+      if (!file.type.startsWith('image/')) {
+        showAlert('Please drop an image file');
+        return;
+      }
+
+      // Create preview
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        preview.src = e.target.result;
+        preview.classList.remove('hidden');
+        
+        if (placeholder) {
+          placeholder.classList.add('hidden');
+        }
+
+        // Update file input
+        const dataTransfer = new DataTransfer();
+        dataTransfer.items.add(file);
+        fileInput.files = dataTransfer.files;
+      };
+      reader.readAsDataURL(file);
+    }
+
+    function initializeAuthState() {
+      const userAccount = localStorage.getItem('pixelcat_user_account');
+      
+      if (userAccount) {
+        // User is logged in, show profile button
+        showProfileButton();
+      } else {
+        // User is not logged in, show login button
+        showLoginButton();
+      }
+    }
+
+    function showProfileButton() {
+      const authButton = document.getElementById('authButton');
+      const profileButton = document.getElementById('profileButton');
+      const username = localStorage.getItem('pixelcat_username');
+      const profilePic = localStorage.getItem('pixelcat_profile_pic');
+
+      // Hide login button
+      authButton.classList.add('hidden');
+      authButton.classList.remove('inline-flex');
+      
+      // Show profile button
+      profileButton.classList.remove('hidden');
+      profileButton.classList.add('inline-flex');
+      
+      // Set profile pic
+      if (profilePic) {
+        document.getElementById('headerProfilePic').src = profilePic;
+      } else {
+        document.getElementById('headerProfilePic').src = './assets/PixelCatIco.png';
+      }
+
+      // Update mobile view
+      updateMobileProfileView(username, profilePic);
+    }
+
+    function showLoginButton() {
+      const authButton = document.getElementById('authButton');
+      const profileButton = document.getElementById('profileButton');
+      const mobileAuthButton = document.getElementById('mobileAuthButton');
+      const mobileProfileView = document.getElementById('mobileProfileView');
+
+      // Show login button
+      authButton.classList.remove('hidden');
+      authButton.classList.add('inline-flex');
+      
+      // Hide profile button
+      profileButton.classList.add('hidden');
+      profileButton.classList.remove('inline-flex');
+
+      // Update mobile view
+      mobileAuthButton.classList.remove('hidden');
+      mobileProfileView.classList.add('hidden');
+    }
+
+    function updateMobileProfileView(username, profilePic) {
+      const mobileAuthButton = document.getElementById('mobileAuthButton');
+      const mobileProfileView = document.getElementById('mobileProfileView');
+      const mobileUsername = document.getElementById('mobileUsername');
+      const mobileProfilePic = document.getElementById('mobileProfilePic');
+
+      mobileAuthButton.classList.add('hidden');
+      mobileProfileView.classList.remove('hidden');
+      mobileUsername.textContent = username || 'User';
+      
+      if (profilePic) {
+        mobileProfilePic.src = profilePic;
+      } else {
+        mobileProfilePic.src = './assets/PixelCatIco.png';
+      }
+    }
+
+    function handleAuthButtonClick() {
+      const userAccount = localStorage.getItem('pixelcat_user_account');
+      
+      if (userAccount) {
+        // User is logged in, show dropdown menu
+        showProfileDropdown();
+      } else {
+        // User is not logged in, show login modal
+        showLoginSignup();
+      }
+    }
+
+    function showProfileDropdown() {
+      const dropdown = document.getElementById('profileDropdown');
+      const profileButton = document.getElementById('profileButton');
+      const username = localStorage.getItem('pixelcat_username');
+      const profilePic = localStorage.getItem('pixelcat_profile_pic');
+
+      // Set dropdown content
+      document.getElementById('dropdownUsername').textContent = username || 'User';
+      if (profilePic) {
+        document.getElementById('dropdownProfilePic').src = profilePic;
+      } else {
+        document.getElementById('dropdownProfilePic').src = './assets/PixelCatIco.png';
+      }
+
+      // Toggle dropdown visibility
+      dropdown.classList.toggle('hidden');
+
+      // Close dropdown when clicking outside
+      document.addEventListener('click', closeDropdownOnClickOutside);
+    }
+
+    function closeDropdownOnClickOutside(e) {
+      const dropdown = document.getElementById('profileDropdown');
+      const profileButton = document.getElementById('profileButton');
+      const authButton = document.getElementById('authButton');
+
+      if (
+        !dropdown.contains(e.target) &&
+        !profileButton.contains(e.target) &&
+        !authButton.contains(e.target)
+      ) {
+        dropdown.classList.add('hidden');
+        document.removeEventListener('click', closeDropdownOnClickOutside);
+      }
+    }
+
+    function showLoginSignup() {
+      const modal = document.getElementById('authModal');
+      modal.classList.remove('hidden');
+      document.body.style.overflow = 'hidden';
+      // Reset to login form
+      document.getElementById('loginForm').classList.remove('hidden');
+      document.getElementById('profileForm').classList.add('hidden');
+      document.getElementById('accountView').classList.add('hidden');
+      document.getElementById('editProfileForm').classList.add('hidden');
+    }
+
+    function closeAuthModal() {
+      const modal = document.getElementById('authModal');
+      modal.classList.add('hidden');
+      document.body.style.overflow = 'auto';
+    }
+
+    async function getUserIpAddress() {
+      try {
+        const response = await fetch('https://api.ipify.org?format=json');
+        const data = await response.json();
+        return data.ip;
+      } catch (error) {
+        console.error('Failed to get IP:', error);
+        return 'unknown';
+      }
+    }
+
+    async function handleLogin(e) {
+      e.preventDefault();
+      const licenseKey = document.getElementById('loginKey').value.trim().toUpperCase();
+      
+      if (!licenseKey) {
+        showAlert('Please enter your license key');
+        return;
+      }
+
+      try {
+        // Get user's current IP
+        const currentIp = await getUserIpAddress();
+        
+        // Validate license key with Supabase
+        const isValidKey = await validateKeyWithBackend(licenseKey);
+        
+        if (!isValidKey) {
+          showAlert('Invalid license key or key already in use');
+          return;
+        }
+
+        // Fetch user profile from Supabase
+        const { data: profile, error: profileError } = await window.supabaseClient
+          .from('user_profiles')
+          .select('username, display_name, avatar_url, user_ip, license_key, created_at')
+          .eq('license_key', licenseKey)
+          .single();
+
+        if (profileError || !profile) {
+          // New user - show profile setup
+          console.log('New user, showing profile setup');
+          localStorage.setItem('pixelcat_temp_license_key', licenseKey);
+          localStorage.setItem('pixelcat_temp_ip', currentIp);
+          
+          document.getElementById('loginForm').classList.add('hidden');
+          document.getElementById('profileForm').classList.remove('hidden');
+          return;
+        }
+
+        // Returning user - check IP for welcome message
+        const sameIp = profile.user_ip === currentIp;
+        
+        // Save to localStorage for this session
+        localStorage.setItem('pixelcat_user_account', licenseKey);
+        localStorage.setItem('pixelcat_username', profile.username);
+        localStorage.setItem('pixelcat_current_ip', currentIp);
+        if (profile.avatar_url) {
+          localStorage.setItem('pixelcat_profile_pic', profile.avatar_url);
+        }
+        
+        // Update UI
+        showProfileButton();
+        closeAuthModal();
+        
+        if (sameIp) {
+          showAlert(`Welcome back, ${profile.username}!`);
+        } else {
+          showAlert(`Logged in as ${profile.username}`);
+        }
+      } catch (error) {
+        showAlert('Login failed. Please try again.');
+        console.error(error);
+      }
+    }
+
+    async function validateKeyWithBackend(key) {
+      // Validate against Supabase - check if key exists and is active
+      if (!key || key.trim() === '') {
+        return false;
+      }
+
+      try {
+        const normalizedKey = key.trim().toUpperCase();
+        console.log('Validating key:', normalizedKey);
+        
+        // Query Supabase for this license key
+        const { data: license, error } = await window.supabaseClient
+          .from('licenses')
+          .select('id, license_key, status, expires_at')
+          .eq('license_key', normalizedKey)
+          .single();
+
+        console.log('Supabase response:', { license, error });
+
+        if (error || !license) {
+          console.error('License not found:', error);
+          return false;
+        }
+
+        // Check if license is active
+        if (license.status !== 'active') {
+          console.error('License is not active:', license.status);
+          return false;
+        }
+
+        // Check if license is expired
+        if (license.expires_at && new Date(license.expires_at) < new Date()) {
+          console.error('License is expired');
+          return false;
+        }
+
+        console.log('Key validated successfully');
+        return true;
+      } catch (error) {
+        console.error('Error validating key:', error);
+        return false;
+      }
+    }
+
+    async function handleProfileSetup(e) {
+      e.preventDefault();
+      const username = document.getElementById('usernameInput').value.trim();
+      const profilePicFile = document.getElementById('profilePicInput').files[0];
+      const licenseKey = localStorage.getItem('pixelcat_temp_license_key');
+      let userIp = localStorage.getItem('pixelcat_temp_ip');
+
+      if (!username) {
+        showAlert('Please enter a username');
+        return;
+      }
+
+      try {
+        // If IP is empty, get it again
+        if (!userIp) {
+          userIp = await getUserIpAddress();
+        }
+
+        let profilePicData = null;
+        if (profilePicFile) {
+          profilePicData = await fileToBase64(profilePicFile);
+        }
+
+        const createdAt = new Date().toISOString();
+
+        // Save to Supabase user_profiles table
+        const { data: profileData, error: profileError } = await window.supabaseClient
+          .from('user_profiles')
+          .upsert({
+            username: username,
+            display_name: username,
+            user_ip: userIp,
+            license_key: licenseKey,
+            avatar_url: profilePicData || null,
+            created_at: createdAt,
+            updated_at: createdAt
+          }, {
+            onConflict: 'username'
+          })
+          .select();
+
+        console.log('Profile data before save:', {
+          username,
+          display_name: username,
+          user_ip: userIp,
+          license_key: licenseKey,
+          avatar_url: profilePicData ? 'base64 image' : null,
+          created_at: createdAt
+        });
+
+        if (profileError) {
+          console.error('Error saving profile to Supabase:', profileError);
+          showAlert('Failed to save profile. Please try again.');
+          return;
+        }
+
+        console.log('Profile saved to Supabase:', profileData);
+
+        // Store in localStorage
+        localStorage.setItem('pixelcat_user_account', licenseKey);
+        localStorage.setItem('pixelcat_username', username);
+        localStorage.setItem('pixelcat_current_ip', userIp);
+        localStorage.setItem('pixelcat_account_created', createdAt);
+        if (profilePicData) {
+          localStorage.setItem('pixelcat_profile_pic', profilePicData);
+        }
+
+        // Save account data with IP for future logins - CRITICAL: use correct key
+        const accountKey = 'pixelcat_account_' + licenseKey;
+        const accountData = {
+          username: username,
+          profilePic: profilePicData,
+          ip: userIp,
+          createdAt: createdAt
+        };
+        const savedJson = JSON.stringify(accountData);
+        localStorage.setItem(accountKey, savedJson);
+
+        // Clean up temp data
+        localStorage.removeItem('pixelcat_temp_license_key');
+        localStorage.removeItem('pixelcat_temp_ip');
+
+        // Update UI to show profile button
+        showProfileButton();
+        closeAuthModal();
+        showAlert('Account created successfully!');
+      } catch (error) {
+        showAlert('Profile setup failed. Please try again.');
+        console.error(error);
+      }
+    }
+
+    function showAccountView() {
+      const username = localStorage.getItem('pixelcat_username');
+      const profilePic = localStorage.getItem('pixelcat_profile_pic');
+
+      document.getElementById('usernameDisplay').textContent = username || 'User';
+      if (profilePic) {
+        document.getElementById('profilePicDisplay').src = profilePic;
+      } else {
+        document.getElementById('profilePicDisplay').src = './assets/PixelCatIco.png';
+      }
+
+      document.getElementById('loginForm').classList.add('hidden');
+      document.getElementById('profileForm').classList.add('hidden');
+      document.getElementById('editProfileForm').classList.add('hidden');
+      document.getElementById('accountView').classList.remove('hidden');
+    }
+
+    function editProfile() {
+      const username = localStorage.getItem('pixelcat_username');
+      document.getElementById('editUsernameInput').value = username || '';
+      
+      // Close dropdown if it's open
+      document.getElementById('profileDropdown').classList.add('hidden');
+      
+      // Open modal with edit form
+      const modal = document.getElementById('authModal');
+      modal.classList.remove('hidden');
+      document.body.style.overflow = 'hidden';
+      
+      // Hide all other forms
+      document.getElementById('loginForm').classList.add('hidden');
+      document.getElementById('profileForm').classList.add('hidden');
+      document.getElementById('accountView').classList.add('hidden');
+      document.getElementById('editProfileForm').classList.remove('hidden');
+    }
+
+    async function handleProfileUpdate(e) {
+      e.preventDefault();
+      const newUsername = document.getElementById('editUsernameInput').value.trim();
+      const profilePicFile = document.getElementById('editProfilePicInput').files[0];
+      const licenseKey = localStorage.getItem('pixelcat_user_account');
+
+      if (!newUsername) {
+        showAlert('Please enter a username');
+        return;
+      }
+
+      try {
+        let profilePicData = localStorage.getItem('pixelcat_profile_pic');
+        
+        if (profilePicFile) {
+          profilePicData = await fileToBase64(profilePicFile);
+        }
+
+        console.log('Updating profile with:', {
+          licenseKey,
+          newUsername,
+          avatar_url: profilePicData ? 'base64 image' : 'no change',
+          updated_at: new Date().toISOString()
+        });
+
+        // Update profile in Supabase by license_key
+        const { data: updateData, error: updateError } = await window.supabaseClient
+          .from('user_profiles')
+          .update({
+            username: newUsername,
+            display_name: newUsername,
+            avatar_url: profilePicData || null,
+            updated_at: new Date().toISOString()
+          })
+          .eq('license_key', licenseKey)
+          .select();
+
+        if (updateError) {
+          console.error('Error updating profile in Supabase:', updateError);
+          showAlert('Failed to update profile. Error: ' + updateError.message);
+          return;
+        }
+
+        console.log('Profile updated in Supabase:', updateData);
+
+        // Update localStorage
+        localStorage.setItem('pixelcat_username', newUsername);
+        if (profilePicData) {
+          localStorage.setItem('pixelcat_profile_pic', profilePicData);
+        }
+
+        closeAuthModal();
+        showProfileButton();
+        showAlert('Profile updated successfully!');
+      } catch (error) {
+        showAlert('Profile update failed. Please try again.');
+        console.error(error);
+      }
+    }
+
+    function cancelEdit() {
+      closeAuthModal();
+      showProfileButton();
+    }
+
+    function goBackToLogin() {
+      document.getElementById('profileForm').classList.add('hidden');
+      document.getElementById('loginForm').classList.remove('hidden');
+      localStorage.removeItem('pixelcat_temp_license_key');
+    }
+
+    async function handleLogout() {
+      showConfirm('Are you sure you want to logout?', async (confirmed) => {
+        if (confirmed) {
+          const licenseKey = localStorage.getItem('pixelcat_user_account');
+          const username = localStorage.getItem('pixelcat_username');
+          let currentIp = localStorage.getItem('pixelcat_current_ip');
+          
+          // If IP is not in session storage, fetch it fresh
+          if (!currentIp) {
+            currentIp = await getUserIpAddress();
+          }
+          
+          // Update user_profiles table with last login IP
+          if (licenseKey && username) {
+            try {
+              await window.supabaseClient
+                .from('user_profiles')
+                .update({
+                  user_ip: currentIp,
+                  updated_at: new Date().toISOString()
+                })
+                .eq('license_key', licenseKey);
+            } catch (error) {
+              console.error('Error updating profile on logout:', error);
+            }
+          }
+
+          // Clear active session from localStorage
+          localStorage.removeItem('pixelcat_user_account');
+          localStorage.removeItem('pixelcat_username');
+          localStorage.removeItem('pixelcat_profile_pic');
+          localStorage.removeItem('pixelcat_current_ip');
+          localStorage.removeItem('pixelcat_temp_license_key');
+          localStorage.removeItem('pixelcat_temp_ip');
+          localStorage.removeItem('pixelcat_account_created');
+          
+          // Close dropdown
+          document.getElementById('profileDropdown').classList.add('hidden');
+          
+          // Close modal
+          closeAuthModal();
+          
+          // Update UI to show login button
+          showLoginButton();
+          
+          // Reset form
+          document.getElementById('loginForm').classList.remove('hidden');
+          document.getElementById('accountView').classList.add('hidden');
+          document.getElementById('editProfileForm').classList.add('hidden');
+          document.getElementById('profileForm').classList.add('hidden');
+          document.getElementById('loginKey').value = '';
+        }
+      });
+    }
+
+    async function fileToBase64(file) {
+      return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.readAsDataURL(file);
+        reader.onload = () => resolve(reader.result);
+        reader.onerror = reject;
+      });
+    }
+
+    function scrollToDownload() {
+      window.location.href = './download.html';
+    }
+
+    function buyNow() {
+      console.log('Buy now clicked - Price: $3.99');
+      // TODO: Integrate with Lemon Squeezy checkout
+      alert(`Processing purchase for $3.99...`);
+    }
+
+    function downloadApp() {
+      console.log('Download clicked');
+      // Implement download logic
+    }
+
+    // Close modal when clicking outside
+    function setupModalClickHandler() {
+      const modal = document.getElementById('authModal');
+      modal?.addEventListener('click', (e) => {
+        if (e.target === modal) {
+          closeAuthModal();
+        }
+      });
+    }
+
+    // Language Selector
+    const translations = {
+      en: {
+        showcase: 'Showcase',
+        download: 'Download',
+        loginSignup: 'Login / Sign up',
+        selectLanguage: 'Select Language',
+        title1: 'A pixel cat',
+        title2: 'that lives in',
+        title3: 'your computer',
+        description: 'PixelCat reacts to your mouse, keyboard, and scrolls. Reminds you to stretch, includes a Pomodoro timer. Customize its color and pattern to make it feel like your own cat.',
+        downloadBtn: 'Download',
+        learnMore: 'Learn more',
+        features: 'Features',
+        whatDoes: 'What PixelCat does',
+        f01: 'Your Cat\'s Pattern',
+        f01Desc: 'Give PixelCat the same markings as the cat you live with.',
+        f02: 'Eye Follow',
+        f02Desc: 'Move your mouse and PixelCat follows it with its eyes.',
+        f03: 'Mochi Drag',
+        f03Desc: 'Drag to lift it and PixelCat stretches like mochi. Shake it and it wobbles!',
+        f04: 'Mouse Hunt',
+        f04Desc: 'Move your mouse fast and PixelCat tries to hunt the cursor.',
+        f05: 'Purring Pets',
+        f05Desc: 'Pet PixelCat\'s head with your mouse and it purrs happily.',
+        f06: 'Keyboard Kneading',
+        f06Desc: 'When you type, PixelCat kneads the keyboard with its tiny paws.',
+        f07: 'Overheat Mode',
+        f07Desc: 'Type too fast and PixelCat turns red, with steam puffing over its head.',
+        f08: 'Stretch Reminder',
+        f08Desc: 'Set a timer and PixelCat grows big to stretch with you.',
+        f09: 'Drink Water Reminder',
+        f09Desc: 'Set a timer and PixelCat pops up to remind you to drink water.',
+        f10: 'Paper Unroll',
+        f10Desc: 'Scroll the page and PixelCat unspools a roll of paper with its paws.',
+        f11: 'Thinking Along',
+        f11Desc: 'While an AI agent is thinking, PixelCat puts on a thinking face too.',
+        f12: 'Agent Done Jump',
+        f12Desc: 'When an AI agent finishes, PixelCat does a happy hop and meows.',
+        f13: 'Pomodoro Timer',
+        f13Desc: 'Set focus and break loops with a pixel timer floating next to PixelCat.',
+        f14: 'Message Reminder',
+        f14Desc: 'Choose a time and message, and PixelCat meows to remind you.',
+        f15: 'Fixed Message',
+        f15Desc: 'Pin an important note above PixelCat\'s head so it stays in sight.',
+        f16: 'Tell Your Name',
+        f16Desc: 'Tell PixelCat your name and it will call you by name during reminders.',
+        f17: 'Multi-Device License',
+        f17Desc: 'Use one license across your devices so PixelCat follows you everywhere.',
+        f18: 'Peek Mode',
+        f18Desc: 'While you watch videos, PixelCat peeks from the screen edge and stays out of the way.',
+        onecat: 'One cat.',
+        readyDesktop: 'Ready for your desktop.',
+        allFeatures: 'All features included',
+        custom: 'Custom cat color & pattern mapping',
+        stretch: 'Stretch reminders and Pomodoro updates',
+        platforms: 'PixelCat for macOS and Windows • No telemetry',
+        license: 'One license works across your devices',
+        alreadyPurchased: 'Already purchased?',
+        downloadPixelcat: 'Download PixelCat',
+        price: '$2.99',
+        buy: 'BUY PIXELCAT'
+      },
+      ko: {
+        showcase: '쇼케이스',
+        download: '다운로드',
+        loginSignup: '로그인 / 가입',
+        selectLanguage: '언어 선택',
+        title1: '픽셀 고양이',
+        title2: '당신의 컴퓨터에',
+        title3: '살고 있어요',
+        description: 'PixelCat은 마우스, 키보드, 스크롤에 반응합니다. 스트레칭을 상기시켜주고 뽀모도로 타이머가 포함되어 있습니다. 색상과 패턴을 사용자 정의하여 당신만의 고양이로 만들어보세요.',
+        downloadBtn: '다운로드',
+        learnMore: '자세히 알아보기',
+        features: '기능',
+        whatDoes: 'PixelCat이 하는 일',
+        f01: '당신의 고양이 패턴',
+        f01Desc: 'PixelCat에 당신의 고양이와 같은 무늬를 주세요.',
+        f02: '눈 추적',
+        f02Desc: '마우스를 움직이면 PixelCat이 눈으로 따라가요.',
+        f03: '모찌 드래그',
+        f03Desc: '들어올리면 PixelCat이 모찌처럼 늘어나요. 흔들면 좌우로 흔들려요!',
+        f04: '마우스 사냥',
+        f04Desc: '마우스를 빠르게 움직이면 PixelCat이 커서를 사냥해요.',
+        f05: '쓸어쓸어',
+        f05Desc: 'PixelCat의 머리를 마우스로 쓰다듬으면 행복하게 콩콩거려요.',
+        f06: '키보드 마사지',
+        f06Desc: '타이핑하면 PixelCat이 작은 발로 키보드를 마사지해요.',
+        f07: '과열 모드',
+        f07Desc: '너무 빠르게 타이핑하면 PixelCat이 빨개지고 연기가 나와요.',
+        f08: '스트레칭 알림',
+        f08Desc: '타이머를 설정하면 PixelCat이 커져서 함께 스트레칭해요.',
+        f09: '물 마시기 알림',
+        f09Desc: '타이머를 설정하면 PixelCat이 팝업해서 물을 마시라고 상기시켜요.',
+        f10: '종이 펼치기',
+        f10Desc: '페이지를 스크롤하면 PixelCat이 발로 종이를 펼쳐요.',
+        f11: '함께 생각하기',
+        f11Desc: 'AI 에이전트가 생각 중이면 PixelCat도 생각하는 표정을 지어요.',
+        f12: '에이전트 완료 점프',
+        f12Desc: 'AI 에이전트가 작업을 완료하면 PixelCat이 행복하게 점프하고 울어요.',
+        f13: '뽀모도로 타이머',
+        f13Desc: '집중과 휴식 루프를 설정하면 PixelCat 옆에 픽셀 타이머가 떠요.',
+        f14: '메시지 알림',
+        f14Desc: '시간과 메시지를 선택하면 PixelCat이 울어서 상기시켜줘요.',
+        f15: '고정 메시지',
+        f15Desc: 'PixelCat 머리 위에 중요한 메모를 고정해서 항상 보이게 해요.',
+        f16: '이름 설정',
+        f16Desc: 'PixelCat에 이름을 알려주면 알림과 휴식 중에 당신의 이름으로 불러요.',
+        f17: '멀티디바이스 라이선스',
+        f17Desc: '한 라이선스로 모든 기기에서 사용할 수 있으니 PixelCat이 항상 따라가요.',
+        f18: '픽 모드',
+        f18Desc: '영상을 볼 때 PixelCat이 화면 끝에서 살짝 모습을 드러내고 알림 때만 나타나요.',
+        onecat: '고양이 하나.',
+        readyDesktop: '데스크톱용 준비 완료.',
+        allFeatures: '모든 기능 포함',
+        custom: '사용자 정의 고양이 색상 및 패턴 매핑',
+        stretch: '스트레칭 알림 및 뽀모도로 업데이트',
+        platforms: 'macOS 및 Windows용 PixelCat • 원격 분석 없음',
+        license: '하나의 라이선스로 모든 기기에서 사용 가능',
+        alreadyPurchased: '이미 구매했나요?',
+        downloadPixelcat: 'PixelCat 다운로드',
+        price: '₩4,400',
+        buy: 'PixelCAT 구매'
+      },
+      ja: {
+        showcase: 'ショーケース',
+        download: 'ダウンロード',
+        loginSignup: 'ログイン / サインアップ',
+        selectLanguage: '言語を選択',
+        title1: 'ピクセル猫',
+        title2: 'があなたの',
+        title3: 'コンピューターに住んでいます',
+        description: 'PixelCatはマウス、キーボード、スクロールに反応します。ストレッチを思い出させ、ポモドーロタイマーが含まれています。色とパターンをカスタマイズして、独自の猫にしましょう。',
+        downloadBtn: 'ダウンロード',
+        learnMore: '詳細を学ぶ',
+        features: '機能',
+        whatDoes: 'PixelCatができること',
+        f01: 'あなたの猫のパターン',
+        f01Desc: 'PixelCatにあなたの猫と同じ模様をつけましょう。',
+        f02: '目で追う',
+        f02Desc: 'マウスを移動するとPixelCatが目で追います。',
+        f03: 'もちドラッグ',
+        f03Desc: 'ドラッグで持ち上げるとPixelCatがもちのように伸びます。揺らすと左右に揺れます！',
+        f04: 'マウスハント',
+        f04Desc: 'マウスを素早く動かすとPixelCatがカーソルを狩ります。',
+        f05: 'ゴロゴロペット',
+        f05Desc: 'PixelCatの頭をマウスで撫でるとゴロゴロと喜びます。',
+        f06: 'キーボードニーディング',
+        f06Desc: 'タイプするとPixelCatが小さな足でキーボードを踏み踏みします。',
+        f07: 'オーバーヒートモード',
+        f07Desc: '早くタイプしすぎるとPixelCatが赤くなり、頭の上から湯気が出ます。',
+        f08: 'ストレッチリマインダー',
+        f08Desc: 'タイマーを設定するとPixelCatが大きくなってあなたと一緒にストレッチします。',
+        f09: '水を飲むリマインダー',
+        f09Desc: 'タイマーを設定するとPixelCatがポップアップして水を飲むよう思い出させます。',
+        f10: '紙をくるくる',
+        f10Desc: 'ページをスクロールするとPixelCatが前足で紙をほどきます。',
+        f11: '一緒に考える',
+        f11Desc: 'AIエージェントが思考中だとPixelCatも考える顔をします。',
+        f12: 'エージェント完了ジャンプ',
+        f12Desc: 'AIエージェントがタスク完了するとPixelCatが嬉しくジャンプして鳴きます。',
+        f13: 'ポモドーロタイマー',
+        f13Desc: '集中と休憩ループを設定するとPixelCatの横にピクセルタイマーが浮かびます。',
+        f14: 'メッセージリマインダー',
+        f14Desc: '時刻とメッセージを選択するとPixelCatが鳴いてあなたに思い出させます。',
+        f15: 'メッセージを固定',
+        f15Desc: 'PixelCatの頭の上に重要なメモを固定して常に見えるようにします。',
+        f16: 'あなたの名前を教える',
+        f16Desc: 'PixelCatにあなたの名前を教えると、リマインダーや休憩中にあなたの名前で呼びかけます。',
+        f17: 'マルチデバイスライセンス',
+        f17Desc: '1つのライセンスを複数のデバイスで使用できるのでPixelCatがどこでもあなたについてきます。',
+        f18: 'ピークモード',
+        f18Desc: '動画を見ているときPixelCatが画面の端からこっそり顔を出し、リマインダー以外は邪魔になりません。',
+        onecat: '1匹の猫。',
+        readyDesktop: 'デスクトップの準備ができています。',
+        allFeatures: 'すべての機能が含まれています',
+        custom: 'カスタム猫の色とパターンマッピング',
+        stretch: 'ストレッチリマインダーとポモドーロアップデート',
+        platforms: 'macOS および Windows 用 PixelCat • テレメトリなし',
+        license: '1つのライセンスですべてのデバイスで動作',
+        alreadyPurchased: 'すでに購入しましたか？',
+        downloadPixelcat: 'PixelCat をダウンロード',
+        price: '¥399',
+        buy: 'PixelCAT を購入'
+      }
+    };
+
+    let currentLanguage = localStorage.getItem('pixelcat_language') || 'en';
+
+    function updatePageLanguage(lang) {
+      const t = translations[lang];
+      
+      // Update navigation
+      const navLinks = document.querySelectorAll('a[href="#showcase"], a[href="#download"]');
+      if (navLinks.length >= 1) navLinks[0].textContent = t.showcase;
+      if (navLinks.length >= 2) navLinks[1].textContent = t.download;
+      
+      // Update auth button
+      const authBtn = document.getElementById('authButton');
+      const mobileAuthBtn = document.getElementById('mobileAuthButton');
+      if (authBtn) authBtn.textContent = t.loginSignup;
+      if (mobileAuthBtn) mobileAuthBtn.textContent = t.loginSignup;
+
+      // Update hero section
+      const h1 = document.querySelector('h1');
+      if (h1) {
+        h1.innerHTML = `${t.title1}<br><span class="text-[#8b9eff]">${t.title2}<br>${t.title3}</span>`;
+      }
+
+      const description = document.querySelector('p[class*="max-w-2xl"]');
+      if (description) {
+        description.textContent = t.description;
+      }
+
+      // Update buttons
+      const downloadBtn = document.querySelector('button[onclick="scrollToDownload()"]');
+      if (downloadBtn) {
+        downloadBtn.innerHTML = `<iconify-icon icon="solar:download-minimalistic-linear" class="text-lg" stroke-width="1.5"></iconify-icon>${t.downloadBtn}`;
+      }
+
+      const learnMoreBtn = document.querySelector('a[href="#features"]');
+      if (learnMoreBtn) {
+        learnMoreBtn.innerHTML = `${t.learnMore}<iconify-icon icon="solar:arrow-down-linear" stroke-width="1.5"></iconify-icon>`;
+      }
+
+      // Update features section header
+      const featureH2 = document.querySelector('h2[class*="uppercase"]');
+      if (featureH2) {
+        featureH2.textContent = t.features;
+      }
+
+      const h3s = document.querySelectorAll('h3');
+      if (h3s.length >= 2) {
+        h3s[1].textContent = t.whatDoes;
+      }
+
+      // Update all 18 feature cards
+      const articles = document.querySelectorAll('#features article');
+      for (let i = 0; i < 18 && i < articles.length; i++) {
+        const h4 = articles[i].querySelector('h4');
+        const p = articles[i].querySelector('p');
+        const featureNum = String(i + 1).padStart(2, '0');
+        const titleKey = `f${featureNum}`;
+        const descKey = `f${featureNum}Desc`;
+        
+        if (h4 && t[titleKey]) h4.textContent = t[titleKey];
+        if (p && t[descKey]) p.textContent = t[descKey];
+      }
+
+      // Update download section
+      const h2s = document.querySelectorAll('h2');
+      if (h2s.length >= 3) {
+        h2s[2].innerHTML = `${t.onecat}<br>${t.readyDesktop}`;
+      }
+
+      // Update checkmark list
+      const checks = document.querySelectorAll('.flex.items-start.gap-3 span.text-sm');
+      if (checks.length >= 5) {
+        checks[0].textContent = t.allFeatures;
+        checks[1].textContent = t.custom;
+        checks[2].textContent = t.stretch;
+        checks[3].textContent = t.platforms;
+        checks[4].textContent = t.license;
+      }
+
+      // Update already purchased
+      const alreadyText = document.querySelector('p.text-sm.font-semibold');
+      if (alreadyText) {
+        alreadyText.innerHTML = `${t.alreadyPurchased} <a href="./download.html" class="underline hover:no-underline">${t.downloadPixelcat}</a>`;
+      }
+
+      // Update buy button
+      const buyBtn = document.querySelector('button[onclick="buyNow()"]');
+      if (buyBtn) {
+        buyBtn.textContent = t.buy;
+      }
+
+      // Update price display
+      const priceDisplay = document.querySelectorAll('.flex.items-baseline.gap-1');
+      if (priceDisplay.length > 0) {
+        const priceSpan = priceDisplay[0].querySelector('.text-4xl');
+        if (priceSpan) {
+          const priceText = t.price.split(/[.,]/)[0];
+          priceSpan.textContent = priceText;
+        }
+      }
+    }
+
+    function openLanguageSelector() {
+      const modal = document.getElementById('languageModal');
+      if (modal) {
+        modal.classList.remove('hidden');
+        document.body.style.overflow = 'hidden';
+      }
+    }
+
+    function closeLanguageModal() {
+      const modal = document.getElementById('languageModal');
+      if (modal) {
+        modal.classList.add('hidden');
+        document.body.style.overflow = 'auto';
+      }
+    }
+
+    function setLanguage(lang) {
+      const langName = {
+        'en': 'English',
+        'ko': '한국어',
+        'ja': '日本語'
+      };
+      
+      currentLanguage = lang;
+      document.getElementById('languageBtn').textContent = langName[lang] || 'English';
+      document.getElementById('mobileLangBtn').textContent = langName[lang] || 'English';
+      localStorage.setItem('pixelcat_language', lang);
+      
+      updatePageLanguage(lang);
+      closeLanguageModal();
+    }
+
+    // Initialize language on page load
+    window.addEventListener('load', () => {
+      updatePageLanguage(currentLanguage);
+    });
+  </script>
+
+  <!-- Language Selector Modal -->
+  <div id="languageModal" class="hidden fixed inset-0 z-[9999] flex items-center justify-center bg-black/50 backdrop-blur-sm">
+    <div class="w-full max-w-sm rounded-2xl border-2 border-[#1a1a4d] bg-[#fffbff] p-8 shadow-[0_20px_60px_rgba(26,26,77,0.3)]">
+      <h2 class="mb-6 text-center text-lg font-semibold text-[#1a1a4d]">Select Language</h2>
+      <div class="space-y-3">
+        <button onclick="setLanguage('en')" class="w-full rounded-xl border-2 border-[#d4c8ff] bg-white px-4 py-3 text-sm font-semibold text-[#1a1a4d] transition hover:bg-[#f5f3ff] hover:border-[#8b9eff]">
+          🇬🇧 English
+        </button>
+        <button onclick="setLanguage('ko')" class="w-full rounded-xl border-2 border-[#d4c8ff] bg-white px-4 py-3 text-sm font-semibold text-[#1a1a4d] transition hover:bg-[#f5f3ff] hover:border-[#8b9eff]">
+          🇰🇷 한국어
+        </button>
+        <button onclick="setLanguage('ja')" class="w-full rounded-xl border-2 border-[#d4c8ff] bg-white px-4 py-3 text-sm font-semibold text-[#1a1a4d] transition hover:bg-[#f5f3ff] hover:border-[#8b9eff]">
+          🇯🇵 日本語
+        </button>
+      </div>
+      <button onclick="closeLanguageModal()" class="mt-6 w-full rounded-xl border border-[#d4c8ff] bg-transparent px-4 py-2 text-sm font-medium text-[#6b5ba0] transition hover:bg-[#f0e8ff]">
+        Close
+      </button>
+    </div>
+  </div>
+
+  <!-- Footer -->
+  <footer class="border-t border-[#d4c8ff] bg-[#f5f3ff] px-4 py-8 sm:px-6 lg:px-8">
+    <div class="mx-auto max-w-6xl">
+      <div class="flex flex-col items-center justify-between gap-6 sm:flex-row">
+        <p class="text-sm text-[#6b5ba0]">©2026 PixelCat</p>
+        <div class="flex gap-6">
+          <a href="#terms" class="text-sm text-[#6b5ba0] transition hover:text-[#1a1a4d]">TERMS</a>
+          <a href="#privacy" class="text-sm text-[#6b5ba0] transition hover:text-[#1a1a4d]">PRIVACY</a>
+        </div>
+      </div>
+    </div>
+  </footer>
+</body>
+</html>
