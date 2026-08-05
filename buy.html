@@ -12,6 +12,7 @@
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://code.iconify.design/iconify-icon/2.1.0/iconify-icon.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="https://www.paypal.com/sdk/js?client-id=Ab-XpkC11m71zNw5CRjOkuQdLqkGGHn5cyGl8hV4nBb09ulChGTw1kpjXk_jU6SgjjmfRDrDoQja_y-h&currency=USD&intent=capture"></script>
   <style>
     body {
       font-family: 'Manrope', sans-serif;
@@ -130,20 +131,15 @@
                 class="mt-1 w-4 h-4 rounded border-[#d4c8ff] text-[#8b9eff] focus:ring-[#8b9eff]"
               />
               <label for="terms" class="text-sm text-[#6b5ba0]">
-                I agree to the <a href="#terms" class="text-[#8b9eff] hover:underline">Terms of Service</a> and <a href="#privacy" class="text-[#8b9eff] hover:underline">Privacy Policy</a>
+                I agree to the <a href="javascript:void(0)" onclick="document.getElementById('termsModal').classList.remove('hidden')" class="text-[#8b9eff] hover:underline">Terms of Service</a> and <a href="javascript:void(0)" onclick="document.getElementById('privacyModal').classList.remove('hidden')" class="text-[#8b9eff] hover:underline">Privacy Policy</a>
               </label>
             </div>
 
             <!-- Status Messages -->
             <div id="statusMessage" class="hidden rounded-lg p-4 text-sm"></div>
 
-            <!-- Pay Button -->
-            <button onclick="handlePayment()" class="w-full rounded-xl bg-[#1a1a4d] px-6 py-4 text-sm font-semibold text-white shadow-[4px_4px_0_#d4c8ff] transition hover:-translate-y-1 hover:shadow-[5px_6px_0_#d4c8ff] mt-6 flex items-center justify-center gap-2">
-              <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="currentColor" viewBox="0 0 16 16">
-                <path d="M14.06 3.713c.12-1.071-.093-1.832-.702-2.526C12.628.356 11.312 0 9.626 0H4.734a.7.7 0 0 0-.691.59L2.005 13.509a.42.42 0 0 0 .415.486h2.756l-.202 1.28a.628.628 0 0 0 .62.726H8.14c.429 0 .793-.31.862-.731l.025-.13.48-3.043.03-.164.001-.007a.35.35 0 0 1 .348-.297h.38c1.266 0 2.425-.256 3.345-.91q.57-.403.993-1.005a4.94 4.94 0 0 0 .88-2.195c.242-1.246.13-2.356-.57-3.154a2.7 2.7 0 0 0-.76-.59l-.094-.061ZM6.543 8.82a.7.7 0 0 1 .321-.079H8.3c2.82 0 5.027-1.144 5.672-4.456l.003-.016q.326.186.548.438c.546.623.679 1.535.45 2.71-.272 1.397-.866 2.307-1.663 2.874-.802.57-1.842.815-3.043.815h-.38a.87.87 0 0 0-.863.734l-.03.164-.48 3.043-.024.13-.001.004a.35.35 0 0 1-.348.296H5.595a.106.106 0 0 1-.105-.123l.208-1.32z"/>
-              </svg>
-              Pay with PayPal
-            </button>
+            <!-- PayPal Button Container -->
+            <div id="paypal-button-container" class="mt-6"></div>
           </div>
 
           <!-- Success Message (shown after purchase) -->
@@ -180,6 +176,94 @@
     </section>
   </main>
 
+  <!-- Terms Modal -->
+  <div id="termsModal" class="hidden fixed inset-0 z-[9999] flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
+    <div class="bg-white rounded-2xl max-w-2xl max-h-[80vh] overflow-y-auto">
+      <div class="sticky top-0 bg-white border-b border-[#d4c8ff] p-6 flex items-center justify-between">
+        <h2 class="text-2xl font-semibold text-[#1a1a4d]">Terms of Service</h2>
+        <button onclick="document.getElementById('termsModal').classList.add('hidden')" class="text-[#6b5ba0] hover:text-[#1a1a4d] text-2xl">&times;</button>
+      </div>
+      <div class="p-6 text-sm text-[#6b5ba0] space-y-4">
+        <h3 class="font-semibold text-[#1a1a4d]">1. License Grant</h3>
+        <p>By purchasing a PixelCat license, you are granted a non-exclusive, non-transferable, perpetual license to use PixelCat on your personal devices.</p>
+        
+        <h3 class="font-semibold text-[#1a1a4d]">2. Permitted Use</h3>
+        <p>You may use PixelCat for personal or business purposes. You may not:</p>
+        <ul class="list-disc list-inside space-y-1 ml-2">
+          <li>Resell, redistribute, or transfer the license</li>
+          <li>Reverse engineer or decompile the software</li>
+          <li>Remove or alter any copyright notices</li>
+          <li>Use the software for unlawful purposes</li>
+        </ul>
+        
+        <h3 class="font-semibold text-[#1a1a4d]">3. Intellectual Property</h3>
+        <p>All content, features, and functionality of PixelCat are owned by PixelCat, protected by copyright and other intellectual property laws.</p>
+        
+        <h3 class="font-semibold text-[#1a1a4d]">4. Disclaimer</h3>
+        <p>PixelCat is provided "as is" without warranty of any kind. We do not guarantee that the software will be error-free or uninterrupted.</p>
+        
+        <h3 class="font-semibold text-[#1a1a4d]">5. Limitation of Liability</h3>
+        <p>In no event shall PixelCat be liable for any indirect, incidental, special, consequential, or punitive damages arising from your use of the software.</p>
+        
+        <h3 class="font-semibold text-[#1a1a4d]">6. Termination</h3>
+        <p>Your license is perpetual unless you breach these terms. Upon termination, you must cease using the software.</p>
+        
+        <h3 class="font-semibold text-[#1a1a4d]">7. Changes to Terms</h3>
+        <p>We reserve the right to modify these terms at any time. Continued use of PixelCat constitutes acceptance of modified terms.</p>
+      </div>
+      <div class="sticky bottom-0 bg-white border-t border-[#d4c8ff] p-6 flex gap-3">
+        <button onclick="document.getElementById('termsModal').classList.add('hidden')" class="flex-1 rounded-xl border border-[#d4c8ff] bg-white px-6 py-3 font-semibold text-[#1a1a4d] transition hover:bg-[#f5f3ff]">
+          Close
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Privacy Policy Modal -->
+  <div id="privacyModal" class="hidden fixed inset-0 z-[9999] flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
+    <div class="bg-white rounded-2xl max-w-2xl max-h-[80vh] overflow-y-auto">
+      <div class="sticky top-0 bg-white border-b border-[#d4c8ff] p-6 flex items-center justify-between">
+        <h2 class="text-2xl font-semibold text-[#1a1a4d]">Privacy Policy</h2>
+        <button onclick="document.getElementById('privacyModal').classList.add('hidden')" class="text-[#6b5ba0] hover:text-[#1a1a4d] text-2xl">&times;</button>
+      </div>
+      <div class="p-6 text-sm text-[#6b5ba0] space-y-4">
+        <h3 class="font-semibold text-[#1a1a4d]">1. Information We Collect</h3>
+        <p>When you purchase a license, we collect your email address to send your license key and receipt. We do not collect any personal information beyond what is necessary for the transaction.</p>
+        
+        <h3 class="font-semibold text-[#1a1a4d]">2. How We Use Your Information</h3>
+        <p>Your email address is used solely to:</p>
+        <ul class="list-disc list-inside space-y-1 ml-2">
+          <li>Send your license key</li>
+          <li>Send payment receipt</li>
+          <li>Provide customer support if needed</li>
+        </ul>
+        
+        <h3 class="font-semibold text-[#1a1a4d]">3. Data Security</h3>
+        <p>We take data security seriously. Your information is encrypted and stored securely. We do not share your email address with third parties without your consent.</p>
+        
+        <h3 class="font-semibold text-[#1a1a4d]">4. Third-Party Services</h3>
+        <p>We use PayPal for payments and Resend for email delivery. These services have their own privacy policies. We encourage you to review them.</p>
+        
+        <h3 class="font-semibold text-[#1a1a4d]">5. Data Retention</h3>
+        <p>We retain your email address and purchase information indefinitely to provide support and verify licenses. You may request deletion at any time by contacting us.</p>
+        
+        <h3 class="font-semibold text-[#1a1a4d]">6. Your Rights</h3>
+        <p>You have the right to access, correct, or delete your personal information. Contact us with any privacy-related requests.</p>
+        
+        <h3 class="font-semibold text-[#1a1a4d]">7. Changes to This Policy</h3>
+        <p>We may update this privacy policy from time to time. We will notify you of any significant changes via email.</p>
+        
+        <h3 class="font-semibold text-[#1a1a4d]">8. Contact Us</h3>
+        <p>If you have any questions about our privacy practices, please contact us through our website.</p>
+      </div>
+      <div class="sticky bottom-0 bg-white border-t border-[#d4c8ff] p-6 flex gap-3">
+        <button onclick="document.getElementById('privacyModal').classList.add('hidden')" class="flex-1 rounded-xl border border-[#d4c8ff] bg-white px-6 py-3 font-semibold text-[#1a1a4d] transition hover:bg-[#f5f3ff]">
+          Close
+        </button>
+      </div>
+    </div>
+  </div>
+
   <!-- Footer -->
   <footer class="border-t border-[#d4c8ff] bg-[#f5f3ff] px-4 py-8 sm:px-6 lg:px-8">
     <div class="mx-auto max-w-6xl">
@@ -198,7 +282,7 @@
     const SUPABASE_URL = 'https://aruivlzkiqknqldefegp.supabase.co';
     const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImFydWl2bHpraXFrbnFsZGVmZWdwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MDAwMDAwMDAsImV4cCI6MTkwMDAwMDAwMH0.PLACEHOLDER';
     
-    const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+    const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
     // Generate License Key
     function generateLicenseKey() {
@@ -213,58 +297,148 @@
       return key;
     }
 
-    // Handle Payment via PayPal.me
-    async function handlePayment() {
-      const email = document.getElementById('email').value.trim();
-      const termsAccepted = document.getElementById('terms').checked;
-
-      if (!email || !termsAccepted) {
-        showStatus('Please enter your email and accept the terms', 'error');
+    function initPayPalButtons() {
+      if (typeof paypal === 'undefined') {
+        console.warn('PayPal SDK not loaded, retrying in 100ms...');
+        setTimeout(initPayPalButtons, 100);
         return;
       }
 
-      // Validate email format
-      if (!email.includes('@')) {
-        showStatus('Please enter a valid email address', 'error');
-        return;
-      }
+      console.log('PayPal SDK loaded, creating buttons...');
 
       try {
-        // Generate license key
-        const licenseKey = generateLicenseKey();
+        // Initialize PayPal Buttons
+        paypal.Buttons({
+          createOrder: (data, actions) => {
+            const email = document.getElementById('email').value.trim();
+            const termsAccepted = document.getElementById('terms').checked;
 
-        // Save pending purchase to Supabase
-        const { error } = await supabase
-          .from('purchases')
-          .insert({
-            email: email,
-            amount_paid: 2.99,
-            currency: 'USD',
-            payment_method: 'paypal',
-            status: 'pending',
-            license_key: licenseKey,
-            notes: 'Payment pending via PayPal.me'
-          })
-          .select();
+            if (!email || !termsAccepted) {
+              showStatus('Please enter your email and accept the terms', 'error');
+              return Promise.reject(new Error('Email and terms are required'));
+            }
 
-        if (error) {
-          throw new Error(error.message);
-        }
+            // Validate email
+            if (!email.includes('@')) {
+              showStatus('Please enter a valid email address', 'error');
+              return Promise.reject(new Error('Invalid email address'));
+            }
 
-        // Redirect to PayPal.me with email in note
-        const paypalUrl = `https://www.paypal.me/GoodnNixen/2.99?note=PixelCat%20License%20-%20${encodeURIComponent(email)}`;
-        window.location.href = paypalUrl;
+            console.log('Creating PayPal order for:', email);
 
-      } catch (error) {
-        showStatus(`Error: ${error.message}`, 'error');
+            return actions.order.create({
+              purchase_units: [{
+                amount: {
+                  currency_code: 'USD',
+                  value: '2.99'
+                },
+                description: 'PixelCat Lifetime License'
+              }]
+            });
+          },
+
+          onApprove: async (data, actions) => {
+            const email = document.getElementById('email').value.trim();
+            
+            try {
+              showStatus('Processing payment...', 'info');
+              console.log('Payment approved, capturing order...');
+
+              // Capture the order
+              const orderData = await actions.order.capture();
+              console.log('Order captured:', orderData.id);
+              
+              // Generate license key
+              const licenseKey = generateLicenseKey();
+              console.log('Generated license key:', licenseKey);
+
+              // Save purchase to Supabase
+              const { error: dbError } = await supabaseClient
+                .from('purchases')
+                .insert({
+                  email: email,
+                  amount_paid: 2.99,
+                  currency: 'USD',
+                  payment_method: 'paypal',
+                  status: 'completed',
+                  license_key: licenseKey,
+                  notes: `PayPal Order ID: ${orderData.id}`
+                })
+                .select();
+
+              if (dbError) {
+                throw new Error('Database error: ' + dbError.message);
+              }
+
+              console.log('Purchase saved to database');
+
+              // Send email with license key via Railway backend
+              const emailResult = await sendLicenseEmail(email, licenseKey);
+              
+              if (!emailResult.success) {
+                console.warn('Email send failed:', emailResult.error);
+                // Still show success even if email fails (user can contact support)
+              }
+
+              console.log('Email sent successfully');
+
+              // Show success message
+              document.querySelector('.space-y-4').style.display = 'none';
+              document.getElementById('successMessage').classList.remove('hidden');
+              showStatus('Payment complete! License key sent to your email.', 'success');
+
+            } catch (error) {
+              console.error('Error:', error);
+              showStatus(`Error: ${error.message}`, 'error');
+            }
+          },
+
+          onError: (err) => {
+            console.error('PayPal error:', err);
+            // Check if it's a validation error (don't show "Payment failed" for those)
+            if (err.message && (err.message.includes('Email') || err.message.includes('terms') || err.message.includes('Invalid'))) {
+              // Validation error already shown by showStatus() in createOrder
+              console.log('Validation error caught in onError - message already displayed');
+            } else {
+              showStatus('Payment failed. Please try again.', 'error');
+            }
+          }
+
+        }).render('#paypal-button-container');
+        
+        console.log('PayPal buttons rendered to #paypal-button-container');
+      } catch (err) {
+        console.error('Failed to initialize PayPal buttons:', err);
+        showStatus('Payment button failed to load. Please refresh the page.', 'error');
       }
     }
 
-    // Hide loading message on page load
-    document.addEventListener('DOMContentLoaded', function() {
-      const loadingMsg = document.getElementById('loadingMessage');
-      if (loadingMsg) loadingMsg.style.display = 'none';
-    });
+    async function sendLicenseEmail(userEmail, licenseKey) {
+      const BACKEND_URL = 'https://email-backend.railway.internal';
+      
+      try {
+        const response = await fetch(`${BACKEND_URL}/api/send-license-email`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            email: userEmail,
+            licenseKey: licenseKey
+          })
+        });
+
+        if (!response.ok) {
+          const errorData = await response.json().catch(() => ({}));
+          throw new Error(errorData.message || `Email send failed: ${response.status}`);
+        }
+
+        return { success: true, data: await response.json() };
+      } catch (error) {
+        console.error('Email send error:', error);
+        return { success: false, error: error.message };
+      }
+    }
 
     function showStatus(message, type) {
       const statusMsg = document.getElementById('statusMessage');
@@ -272,9 +446,18 @@
       statusMsg.className = `rounded-lg p-4 text-sm ${
         type === 'success' 
           ? 'bg-green-100 text-green-700 border border-green-300' 
-          : 'bg-red-100 text-red-700 border border-red-300'
+          : type === 'error'
+          ? 'bg-red-100 text-red-700 border border-red-300'
+          : 'bg-blue-100 text-blue-700 border border-blue-300'
       }`;
       statusMsg.classList.remove('hidden');
+    }
+
+    // Initialize PayPal buttons when DOM is ready
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', initPayPalButtons);
+    } else {
+      initPayPalButtons();
     }
   </script>
 </body>
