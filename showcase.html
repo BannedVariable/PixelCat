@@ -193,10 +193,13 @@
 
     // Initialize Supabase when page loads
     window.addEventListener('load', async () => {
-      // Create Supabase client
+      // Create Supabase client (same as index.html)
       supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
       
       console.log('Supabase client initialized');
+      console.log('Checking localStorage for auth...');
+      console.log('pixelcat_username:', localStorage.getItem('pixelcat_username'));
+      console.log('pixelcat_user_account:', localStorage.getItem('pixelcat_user_account'));
       
       // Try to get logged-in user info
       await checkLoggedInUser();
@@ -208,19 +211,20 @@
 
     async function checkLoggedInUser() {
       try {
-        // Get username and license key from localStorage
+        // Get the same keys that index.html uses
         const username = localStorage.getItem('pixelcat_username');
-        const licenseKey = localStorage.getItem('pixelcat_license_key');
+        const licenseKey = localStorage.getItem('pixelcat_user_account');  // Note: different key
+        
+        console.log('Auth check - username:', username, 'licenseKey:', licenseKey);
         
         if (!username || !licenseKey) {
-          console.log('User not logged in via localStorage');
-          // Show login button
+          console.log('User not logged in - no auth data in localStorage');
           const loginBtn = document.getElementById('showcaseLoginBtn');
           if (loginBtn) loginBtn.style.display = 'inline-flex';
           return;
         }
 
-        console.log('Fetching profile for user:', username);
+        console.log('Fetching profile for user:', username, 'with license:', licenseKey);
 
         // Fetch user profile from Supabase using license key
         const { data: profile, error } = await supabaseClient
@@ -238,7 +242,6 @@
             email: profile.email
           };
           console.log('User profile loaded:', currentUser);
-          // Hide login button if logged in
           const loginBtn = document.getElementById('showcaseLoginBtn');
           if (loginBtn) loginBtn.style.display = 'none';
         } else if (error) {
