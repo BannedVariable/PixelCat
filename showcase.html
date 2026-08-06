@@ -213,7 +213,7 @@
       try {
         // Get the same keys that index.html uses
         const username = localStorage.getItem('pixelcat_username');
-        const licenseKey = localStorage.getItem('pixelcat_user_account');  // Note: different key
+        const licenseKey = localStorage.getItem('pixelcat_user_account');
         
         console.log('Auth check - username:', username, 'licenseKey:', licenseKey);
         
@@ -224,13 +224,13 @@
           return;
         }
 
-        console.log('Fetching profile for user:', username, 'with license:', licenseKey);
+        console.log('Fetching profile for user:', username);
 
-        // Fetch user profile from Supabase using license key
+        // Fetch user profile from Supabase using username (more reliable)
         const { data: profile, error } = await supabaseClient
           .from('user_profiles')
-          .select('username, avatar_url, email')
-          .eq('license_key', licenseKey.trim().toUpperCase())
+          .select('username, avatar_url, display_name')
+          .eq('username', username)
           .single();
 
         console.log('Profile fetch result:', { profile, error });
@@ -239,17 +239,18 @@
           currentUser = {
             username: profile.username || username,
             avatar_url: profile.avatar_url,
-            email: profile.email
+            display_name: profile.display_name || username
           };
-          console.log('User profile loaded:', currentUser);
+          console.log('User profile loaded successfully:', currentUser);
           const loginBtn = document.getElementById('showcaseLoginBtn');
           if (loginBtn) loginBtn.style.display = 'none';
-        } else if (error) {
+        } else {
           console.log('Profile fetch error:', error);
+          // Still use the username even if profile fetch fails
           currentUser = {
             username: username,
             avatar_url: null,
-            email: null
+            display_name: username
           };
           const loginBtn = document.getElementById('showcaseLoginBtn');
           if (loginBtn) loginBtn.style.display = 'none';
