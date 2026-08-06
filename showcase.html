@@ -40,6 +40,71 @@
       scrollbar-color: #d4c8ff transparent;
       scrollbar-width: thin;
     }
+
+    /* Skeleton Loader Animation */
+    @keyframes skeleton-shimmer {
+      0% {
+        background-position: -1000px 0;
+      }
+      100% {
+        background-position: 1000px 0;
+      }
+    }
+
+    .skeleton {
+      background: linear-gradient(90deg, #f5f3ff 25%, #e8e0ff 50%, #f5f3ff 75%);
+      background-size: 1000px 100%;
+      animation: skeleton-shimmer 2s infinite;
+    }
+
+    .skeleton-card {
+      border-radius: 1rem;
+      border: 1px solid #d4c8ff;
+      background: #fffbff;
+      overflow: hidden;
+    }
+
+    .skeleton-card-image {
+      width: 100%;
+      height: 12rem;
+      background: linear-gradient(90deg, #f5f3ff 25%, #e8e0ff 50%, #f5f3ff 75%);
+      background-size: 1000px 100%;
+      animation: skeleton-shimmer 2s infinite;
+    }
+
+    .skeleton-card-content {
+      padding: 1.5rem;
+    }
+
+    .skeleton-title {
+      height: 1.5rem;
+      margin-bottom: 0.75rem;
+      border-radius: 0.5rem;
+      animation: skeleton-shimmer 2s infinite;
+    }
+
+    .skeleton-avatar {
+      width: 1.5rem;
+      height: 1.5rem;
+      border-radius: 9999px;
+      margin-bottom: 0.75rem;
+      animation: skeleton-shimmer 2s infinite;
+      display: inline-block;
+    }
+
+    .skeleton-text {
+      height: 1rem;
+      margin-bottom: 0.5rem;
+      border-radius: 0.25rem;
+      animation: skeleton-shimmer 2s infinite;
+    }
+
+    .skeleton-button {
+      height: 2.5rem;
+      border-radius: 0.5rem;
+      margin-top: 1rem;
+      animation: skeleton-shimmer 2s infinite;
+    }
   </style>
 </head>
 
@@ -386,6 +451,12 @@
       }
 
       try {
+        // Show loading state
+        const submitBtn = document.querySelector('#designForm button[type="submit"]');
+        const originalText = submitBtn.textContent;
+        submitBtn.disabled = true;
+        submitBtn.innerHTML = '<span class="inline-flex items-center gap-2"><iconify-icon icon="eos-icons:loading" class="text-lg"></iconify-icon> Uploading...</span>';
+
         // Read image as base64
         const imageBase64 = await fileToBase64(imageFile);
         
@@ -420,6 +491,8 @@
         if (error) {
           console.error('Error adding design:', error);
           alert(`Error adding design: ${error.message || 'Please try again.'}`);
+          submitBtn.disabled = false;
+          submitBtn.textContent = originalText;
           return;
         }
 
@@ -429,15 +502,38 @@
         closeAddDesignModal();
         await loadDesigns();
 
+        submitBtn.disabled = false;
+        submitBtn.textContent = originalText;
         alert('Design added successfully!');
       } catch (error) {
         console.error('Error adding design:', error);
         alert(`Error adding design: ${error.message || 'Please check your JSON file.'}`);
+        const submitBtn = document.querySelector('#designForm button[type="submit"]');
+        submitBtn.disabled = false;
+        submitBtn.textContent = 'Submit Design';
       }
     }
 
     async function loadDesigns() {
       try {
+        // Show skeleton loaders while loading
+        const grid = document.getElementById('designsGrid');
+        grid.innerHTML = Array(3).fill(0).map(() => `
+          <div class="skeleton-card">
+            <div class="skeleton-card-image"></div>
+            <div class="skeleton-card-content">
+              <div class="skeleton-title" style="width: 80%;"></div>
+              <div class="skeleton-avatar" style="width: 1.5rem;"></div>
+              <div style="margin-left: 0.5rem; display: inline-block;">
+                <div class="skeleton-text" style="width: 100px; height: 0.875rem;"></div>
+              </div>
+              <div class="skeleton-text" style="width: 90%; margin-top: 0.75rem;"></div>
+              <div class="skeleton-text" style="width: 70%;"></div>
+              <div class="skeleton-button"></div>
+            </div>
+          </div>
+        `).join('');
+
         const { data, error } = await supabaseClient
           .from('community_designs')
           .select('*')
@@ -445,6 +541,8 @@
 
         if (error) {
           console.error('Error loading designs:', error);
+          document.getElementById('emptyState').classList.remove('hidden');
+          grid.innerHTML = '';
           return;
         }
 
@@ -452,6 +550,8 @@
         renderDesigns();
       } catch (error) {
         console.error('Error loading designs:', error);
+        document.getElementById('emptyState').classList.remove('hidden');
+        document.getElementById('designsGrid').innerHTML = '';
       }
     }
 
@@ -520,14 +620,29 @@
       const design = designs.find(d => d.id === id);
       if (!design) return;
 
-      // Create and download JSON
-      const element = document.createElement('a');
-      element.setAttribute('href', 'data:application/json;charset=utf-8,' + encodeURIComponent(JSON.stringify(design.json_data, null, 2)));
-      element.setAttribute('download', filename || `design-${id}.json`);
-      element.style.display = 'none';
-      document.body.appendChild(element);
-      element.click();
-      document.body.removeChild(element);
+      // Find and update the button
+      const button = event.target.closest('button');
+      if (button) {
+        const originalContent = button.innerHTML;
+        button.disabled = true;
+        button.innerHTML = '<span class="inline-flex items-center gap-2"><iconify-icon icon="eos-icons:loading" class="text-sm"></iconify-icon> Downloading...</span>';
+
+        // Small delay for visual feedback
+        setTimeout(() => {
+          // Create and download JSON
+          const element = document.createElement('a');
+          element.setAttribute('href', 'data:application/json;charset=utf-8,' + encodeURIComponent(JSON.stringify(design.json_data, null, 2)));
+          element.setAttribute('download', filename || `design-${id}.json`);
+          element.style.display = 'none';
+          document.body.appendChild(element);
+          element.click();
+          document.body.removeChild(element);
+
+          // Reset button
+          button.disabled = false;
+          button.innerHTML = originalContent;
+        }, 300);
+      }
     }
   </script>
 </body>

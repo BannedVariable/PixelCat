@@ -42,6 +42,88 @@
       scrollbar-color: #d4c8ff transparent;
       scrollbar-width: thin;
     }
+
+    /* Skeleton Loader Animation */
+    @keyframes skeleton-shimmer {
+      0% {
+        background-position: -1000px 0;
+      }
+      100% {
+        background-position: 1000px 0;
+      }
+    }
+
+    .skeleton {
+      background: linear-gradient(90deg, #f5f3ff 25%, #e8e0ff 50%, #f5f3ff 75%);
+      background-size: 1000px 100%;
+      animation: skeleton-shimmer 2s infinite;
+    }
+
+    .skeleton-card {
+      border-radius: 1rem;
+      border: 1px solid #d4c8ff;
+      background: #fffbff;
+      overflow: hidden;
+    }
+
+    .skeleton-card-image {
+      width: 100%;
+      height: 12rem;
+      background: linear-gradient(90deg, #f5f3ff 25%, #e8e0ff 50%, #f5f3ff 75%);
+      background-size: 1000px 100%;
+      animation: skeleton-shimmer 2s infinite;
+    }
+
+    .skeleton-card-content {
+      padding: 1.5rem;
+    }
+
+    .skeleton-title {
+      height: 1.5rem;
+      margin-bottom: 0.75rem;
+      border-radius: 0.5rem;
+      background: linear-gradient(90deg, #f5f3ff 25%, #e8e0ff 50%, #f5f3ff 75%);
+      background-size: 1000px 100%;
+      animation: skeleton-shimmer 2s infinite;
+    }
+
+    .skeleton-avatar {
+      width: 1.5rem;
+      height: 1.5rem;
+      border-radius: 9999px;
+      margin-bottom: 0.75rem;
+      background: linear-gradient(90deg, #f5f3ff 25%, #e8e0ff 50%, #f5f3ff 75%);
+      background-size: 1000px 100%;
+      animation: skeleton-shimmer 2s infinite;
+      display: inline-block;
+    }
+
+    .skeleton-text {
+      height: 1rem;
+      margin-bottom: 0.5rem;
+      border-radius: 0.25rem;
+      background: linear-gradient(90deg, #f5f3ff 25%, #e8e0ff 50%, #f5f3ff 75%);
+      background-size: 1000px 100%;
+      animation: skeleton-shimmer 2s infinite;
+    }
+
+    .skeleton-button {
+      height: 2.5rem;
+      border-radius: 0.5rem;
+      margin-top: 1rem;
+      background: linear-gradient(90deg, #f5f3ff 25%, #e8e0ff 50%, #f5f3ff 75%);
+      background-size: 1000px 100%;
+      animation: skeleton-shimmer 2s infinite;
+    }
+
+    .skeleton-input {
+      height: 2.75rem;
+      border-radius: 0.5rem;
+      margin-bottom: 1rem;
+      background: linear-gradient(90deg, #f5f3ff 25%, #e8e0ff 50%, #f5f3ff 75%);
+      background-size: 1000px 100%;
+      animation: skeleton-shimmer 2s infinite;
+    }
   </style>
 </head>
 
@@ -477,6 +559,12 @@
         </button>
       </div>
 
+      <!-- Loading Skeleton -->
+      <div id="authSkeleton" class="hidden space-y-4">
+        <div class="skeleton-input"></div>
+        <div class="skeleton-button"></div>
+      </div>
+
       <!-- Login Form (Step 1: Enter License Key) -->
       <form id="loginForm" onsubmit="handleLogin(event)" class="space-y-4">
         <div>
@@ -874,6 +962,10 @@
       }
 
       try {
+        // Show skeleton loader
+        document.getElementById('loginForm').classList.add('hidden');
+        document.getElementById('authSkeleton').classList.remove('hidden');
+
         // Get user's current IP
         const currentIp = await getUserIpAddress();
         
@@ -882,6 +974,8 @@
         
         if (!isValidKey) {
           showAlert('Invalid license key or key already in use');
+          document.getElementById('authSkeleton').classList.add('hidden');
+          document.getElementById('loginForm').classList.remove('hidden');
           return;
         }
 
@@ -898,6 +992,7 @@
           localStorage.setItem('pixelcat_temp_license_key', licenseKey);
           localStorage.setItem('pixelcat_temp_ip', currentIp);
           
+          document.getElementById('authSkeleton').classList.add('hidden');
           document.getElementById('loginForm').classList.add('hidden');
           document.getElementById('profileForm').classList.remove('hidden');
           return;
@@ -926,6 +1021,8 @@
       } catch (error) {
         showAlert('Login failed. Please try again.');
         console.error(error);
+        document.getElementById('authSkeleton').classList.add('hidden');
+        document.getElementById('loginForm').classList.remove('hidden');
       }
     }
 
@@ -986,6 +1083,10 @@
       }
 
       try {
+        // Show skeleton loader
+        document.getElementById('profileForm').classList.add('hidden');
+        document.getElementById('authSkeleton').classList.remove('hidden');
+
         // If IP is empty, get it again
         if (!userIp) {
           userIp = await getUserIpAddress();
@@ -1026,6 +1127,8 @@
         if (profileError) {
           console.error('Error saving profile to Supabase:', profileError);
           showAlert('Failed to save profile. Please try again.');
+          document.getElementById('authSkeleton').classList.add('hidden');
+          document.getElementById('profileForm').classList.remove('hidden');
           return;
         }
 
