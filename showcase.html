@@ -369,7 +369,12 @@
       let creatorAvatar = currentUser ? currentUser.avatar_url : null;
 
       console.log('Creator name:', creatorName);
-      console.log('Creator avatar length:', creatorAvatar ? creatorAvatar.length : 'null');
+      console.log('Creator avatar:', {
+        exists: !!creatorAvatar,
+        type: typeof creatorAvatar,
+        length: creatorAvatar ? creatorAvatar.length : 0,
+        preview: creatorAvatar ? creatorAvatar.substring(0, 100) : null
+      });
 
       if (!creatorName) {
         creatorName = prompt('Enter your username:');
@@ -396,7 +401,7 @@
           json_data: jsonData,
           json_filename: jsonFile.name,
           creator_name: creatorName,
-          creator_avatar: creatorAvatar,
+          creator_avatar: creatorAvatar || null,
           created_at: new Date().toISOString()
         };
 
@@ -480,8 +485,10 @@
 
       emptyState.classList.add('hidden');
       grid.innerHTML = designs.map(design => {
+        console.log(`Design "${design.name}" - creator_avatar exists:`, !!design.creator_avatar, 'length:', design.creator_avatar ? design.creator_avatar.length : 0);
+        
         const avatarHtml = design.creator_avatar 
-          ? `<img src="${design.creator_avatar}" alt="${design.creator_name}" class="w-6 h-6 rounded-full object-cover border border-[#d4c8ff]" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex'" />`
+          ? `<img src="${design.creator_avatar}" alt="${design.creator_name}" class="w-6 h-6 rounded-full object-cover border border-[#d4c8ff]" onerror="console.log('Avatar load error for ${design.creator_name}'); this.style.display='none'; this.nextElementSibling.style.display='flex'" />`
           : '';
         const placeholderHtml = !design.creator_avatar 
           ? `<div class="w-6 h-6 rounded-full bg-[#8b9eff] flex items-center justify-center text-white text-xs font-bold">${design.creator_name.charAt(0).toUpperCase()}</div>`
